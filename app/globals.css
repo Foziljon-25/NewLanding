@@ -1,0 +1,745 @@
+:root {
+  --color-slate-50: #f8fafc;
+  --color-slate-100: #f1f5f9;
+  --color-slate-200: #e2e8f0;
+  --color-slate-500: #64748b;
+  --color-slate-800: #1e293b;
+  --color-sky-500: #0ea5e9;
+  --color-sky-600: #1884dc;
+  --color-orange: #ea641d;
+  --page-bg: #f7f9fb;
+  --card-shadow: 0 56px 24px rgba(211, 213, 215, 0.08);
+  --button-shadow: 0 16px 28px rgba(14, 165, 233, 0.22);
+  --gradient-blue: linear-gradient(180deg, var(--color-sky-500) 50%, var(--color-sky-600) 150%);
+  --container: min(100% - 80px, 1360px);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  margin: 0;
+  background: var(--page-bg);
+  color: var(--color-slate-800);
+  font-family: var(--font-geologica), Arial, sans-serif;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+button {
+  font: inherit;
+}
+
+img {
+  max-width: 100%;
+}
+
+.page-shell {
+  width: var(--container);
+  margin: 24px auto 80px;
+}
+
+.site-header {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  height: 80px;
+  padding: 12px 16px 12px 36px;
+  background: #fff;
+  border-radius: 36px;
+  overflow: hidden;
+}
+
+.logo-link {
+  display: inline-flex;
+  align-items: center;
+  width: fit-content;
+}
+
+.logo-image,
+.footer-logo {
+  display: block;
+  height: auto;
+}
+
+.logo-image {
+  width: 132px;
+}
+
+.footer-logo {
+  width: 132px;
+}
+
+.figma-icon {
+  display: inline-block;
+  flex: 0 0 auto;
+  width: 18px;
+  height: 18px;
+  background: currentColor;
+  -webkit-mask: var(--icon-url) center / contain no-repeat;
+  mask: var(--icon-url) center / contain no-repeat;
+}
+
+.figma-icon--phone-call {
+  --icon-url: url("/assets/icons/phone-call.svg");
+}
+
+.figma-icon--mail {
+  --icon-url: url("/assets/icons/mail.svg");
+}
+
+.figma-icon--map-pin {
+  --icon-url: url("/assets/icons/map-pin.svg");
+}
+
+.figma-icon--telegram {
+  --icon-url: url("/assets/icons/telegram.svg");
+}
+
+.figma-icon--instagram {
+  --icon-url: url("/assets/icons/instagram.svg");
+}
+
+.figma-icon--youtube {
+  --icon-url: url("/assets/icons/youtube.svg");
+}
+
+.figma-icon--facebook {
+  --icon-url: url("/assets/icons/facebook.svg");
+}
+
+.main-nav {
+  display: flex;
+  align-items: center;
+  gap: 40px;
+  color: var(--color-slate-500);
+  font-size: 16px;
+  line-height: 22px;
+}
+
+.main-nav a,
+.footer-bottom a,
+.contact-row a {
+  transition: color 180ms ease, opacity 180ms ease;
+}
+
+.main-nav a:hover,
+.footer-bottom a:hover,
+.contact-row a:hover {
+  color: var(--color-sky-500);
+}
+
+.header-actions {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 16px;
+}
+
+.language-switch {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 48px;
+  padding: 12px 16px;
+  border: 0;
+  border-radius: 46px;
+  background: var(--color-slate-100);
+  color: var(--color-slate-800);
+  cursor: pointer;
+}
+
+.apply-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 256px;
+  min-height: 48px;
+  padding: 14px 24px;
+  border-radius: 999px;
+  font-size: 16px;
+  line-height: 22px;
+  white-space: nowrap;
+  transition: transform 180ms ease, box-shadow 180ms ease, border-color 180ms ease;
+}
+
+.apply-button:hover {
+  transform: translateY(-1px);
+}
+
+.apply-button--primary {
+  color: #fff;
+  background: var(--gradient-blue);
+  box-shadow: var(--button-shadow);
+}
+
+.apply-button--outline {
+  min-width: 138px;
+  border: 1px solid #bae6fd;
+  color: var(--color-sky-600);
+  background: #fff;
+}
+
+.hero-section,
+.bonus-section,
+.benefit-card {
+  background: #fff;
+  border-radius: 36px;
+  box-shadow: var(--card-shadow);
+  overflow: hidden;
+}
+
+.hero-section {
+  position: relative;
+  min-height: 425px;
+  margin-top: 20px;
+}
+
+.hero-copy {
+  position: relative;
+  z-index: 2;
+  width: min(600px, 50%);
+  padding: 90px 0 0 80px;
+}
+
+.hero-copy h1 {
+  margin: 0 0 36px;
+  font-size: 36px;
+  font-weight: 600;
+  line-height: 48px;
+  letter-spacing: 0;
+}
+
+.hero-copy h1 span {
+  color: var(--color-orange);
+}
+
+.hero-device {
+  position: absolute;
+  top: -69px;
+  left: 451px;
+  width: 1033px;
+  height: 689px;
+  max-width: none;
+  object-fit: cover;
+}
+
+.hero-info {
+  position: absolute;
+  z-index: 3;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 12px 15px;
+  border: 1px solid rgba(226, 232, 240, 0.9);
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.6);
+  backdrop-filter: blur(27px);
+}
+
+.hero-info strong {
+  font-size: 15px;
+  font-weight: 500;
+  line-height: 20px;
+}
+
+.hero-info span {
+  color: var(--color-slate-500);
+  font-size: 11px;
+  font-weight: 300;
+  line-height: 15px;
+}
+
+.hero-info--left {
+  top: 141px;
+  left: 701px;
+  width: 153px;
+}
+
+.hero-info--right {
+  top: 300px;
+  left: 1112px;
+  width: 178px;
+}
+
+.benefits-section {
+  margin-top: 80px;
+}
+
+.benefits-section h2 {
+  max-width: 817px;
+  margin: 0 0 38px;
+  font-size: 36px;
+  font-weight: 600;
+  line-height: 48px;
+  letter-spacing: 0;
+}
+
+.benefits-section h2 span {
+  color: var(--color-sky-500);
+}
+
+.benefits-section h2 em {
+  color: var(--color-orange);
+  font-style: normal;
+}
+
+.benefit-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.benefit-card {
+  min-height: 500px;
+  padding: 36px;
+}
+
+.benefit-text {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.benefit-text h3 {
+  margin: 0;
+  color: var(--color-sky-500);
+  font-size: 20px;
+  font-weight: 600;
+  line-height: 28px;
+}
+
+.benefit-text p {
+  margin: 0;
+  color: var(--color-slate-500);
+  font-size: 14px;
+  font-weight: 300;
+  line-height: 20px;
+}
+
+.benefit-image {
+  display: block;
+  width: 100%;
+  height: 332px;
+  margin-top: 20px;
+  border-radius: 24px;
+  object-fit: cover;
+}
+
+.benefit-card:first-child .benefit-image {
+  object-position: 42% center;
+}
+
+.benefit-card--dark {
+  padding: 36px;
+}
+
+.icloud-panel {
+  position: relative;
+  min-height: 428px;
+  border-radius: 24px;
+  background: var(--color-slate-800);
+  overflow: hidden;
+}
+
+.icloud-panel img {
+  position: absolute;
+  top: -7px;
+  right: -5px;
+  width: 327px;
+  height: 327px;
+}
+
+.icloud-panel .benefit-text {
+  position: absolute;
+  left: 36px;
+  right: 36px;
+  bottom: 36px;
+}
+
+.icloud-panel h3 {
+  color: #fff;
+}
+
+.icloud-panel p {
+  color: var(--color-slate-50);
+}
+
+.bonus-section {
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(0, 600px) minmax(320px, 1fr);
+  align-items: center;
+  gap: 32px;
+  min-height: 396px;
+  margin-top: 80px;
+  padding: 64px 64px 0 80px;
+}
+
+.bonus-copy {
+  position: relative;
+  z-index: 2;
+  width: 100%;
+  padding-bottom: 56px;
+}
+
+.bonus-copy h2 {
+  margin: 0 0 8px;
+  font-size: 36px;
+  font-weight: 600;
+  line-height: 48px;
+}
+
+.bonus-copy p {
+  width: auto;
+  max-width: 552px;
+  margin: 0 0 36px;
+  color: var(--color-slate-500);
+  font-size: 24px;
+  font-weight: 300;
+  line-height: 32px;
+}
+
+.gift-image {
+  position: relative;
+  align-self: end;
+  justify-self: end;
+  width: min(100%, 586px);
+  height: auto;
+  max-height: 391px;
+  object-fit: contain;
+}
+
+.site-footer {
+  min-height: 353px;
+  padding: 40px 40px 16px;
+  background: var(--color-slate-800);
+  color: #fff;
+}
+
+.footer-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-height: 263px;
+  padding-top: 28px;
+  border-radius: 36px;
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.contact-row,
+.address-row,
+.social-row,
+.footer-bottom,
+.footer-bottom div {
+  display: flex;
+  align-items: center;
+}
+
+.contact-row {
+  gap: 12px;
+  margin-top: 20px;
+}
+
+.contact-row a {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 167px;
+  font-size: 14px;
+  font-weight: 300;
+  line-height: 18px;
+}
+
+.contact-row .figma-icon,
+.address-item .figma-icon {
+  color: rgba(226, 232, 240, 0.68);
+}
+
+.address-row {
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 12px;
+  margin-top: 20px;
+}
+
+.address-item {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-width: 252px;
+  padding: 8px 16px;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.08);
+  font-size: 14px;
+  font-weight: 300;
+  line-height: 18px;
+}
+
+.social-row {
+  gap: 4px;
+  margin-top: 16px;
+}
+
+.social-row a {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.08);
+  color: rgba(255, 255, 255, 0.78);
+}
+
+.social-row .figma-icon {
+  width: 18px;
+  height: 18px;
+}
+
+.footer-bottom {
+  justify-content: space-between;
+  width: min(100% - 96px, 1264px);
+  margin: 16px auto 0;
+  color: rgba(255, 255, 255, 0.6);
+  font-size: 14px;
+  font-weight: 300;
+  line-height: 18px;
+}
+
+.footer-bottom p {
+  margin: 0;
+}
+
+.footer-bottom div {
+  gap: 16px;
+}
+
+@media (max-width: 1180px) {
+  :root {
+    --container: min(100% - 40px, 960px);
+  }
+
+  .site-header {
+    grid-template-columns: auto 1fr;
+    gap: 24px;
+  }
+
+  .main-nav {
+    display: none;
+  }
+
+  .hero-copy {
+    width: 56%;
+    padding-left: 48px;
+  }
+
+  .hero-device {
+    left: 43%;
+  }
+
+  .hero-info--left {
+    left: 52%;
+  }
+
+  .hero-info--right {
+    right: 44px;
+    left: auto;
+  }
+
+  .benefit-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .benefit-card {
+    min-height: auto;
+  }
+
+  .benefit-image,
+  .icloud-panel {
+    height: 360px;
+  }
+
+  .bonus-section {
+    grid-template-columns: minmax(0, 1fr) minmax(280px, 46%);
+    gap: 20px;
+    padding: 48px 48px 0;
+  }
+
+  .bonus-copy {
+    width: 100%;
+    padding: 0 0 48px;
+  }
+
+  .bonus-copy p {
+    width: auto;
+  }
+
+  .gift-image {
+    width: 100%;
+    max-width: 520px;
+  }
+}
+
+@media (max-width: 760px) {
+  :root {
+    --container: min(100% - 24px, 560px);
+  }
+
+  .page-shell {
+    margin-top: 12px;
+    margin-bottom: 48px;
+  }
+
+  .site-header {
+    height: auto;
+    grid-template-columns: 1fr;
+    padding: 18px;
+    border-radius: 24px;
+  }
+
+  .header-actions {
+    display: grid;
+    grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
+    width: 100%;
+    gap: 12px;
+  }
+
+  .language-switch,
+  .header-actions .apply-button--outline {
+    width: 100%;
+    min-width: 0;
+    justify-content: center;
+  }
+
+  .apply-button {
+    min-width: 164px;
+  }
+
+  .apply-button--outline {
+    min-width: 0;
+    padding-right: 16px;
+    padding-left: 16px;
+  }
+
+  .hero-section {
+    min-height: 620px;
+    border-radius: 28px;
+  }
+
+  .hero-copy {
+    width: auto;
+    padding: 36px 24px 0;
+  }
+
+  .hero-copy h1,
+  .benefits-section h2,
+  .bonus-copy h2 {
+    font-size: 28px;
+    line-height: 38px;
+  }
+
+  .hero-device {
+    top: 232px;
+    left: 50%;
+    width: 720px;
+    height: 480px;
+    transform: translateX(-38%);
+  }
+
+  .hero-info--left {
+    top: 276px;
+    left: 24px;
+  }
+
+  .hero-info--right {
+    top: 448px;
+    right: 20px;
+  }
+
+  .benefits-section,
+  .bonus-section {
+    margin-top: 48px;
+  }
+
+  .benefits-section h2 {
+    margin-bottom: 24px;
+  }
+
+  .benefit-card {
+    padding: 20px;
+    border-radius: 28px;
+  }
+
+  .benefit-image,
+  .icloud-panel {
+    height: 290px;
+  }
+
+  .icloud-panel .benefit-text {
+    left: 24px;
+    right: 24px;
+    bottom: 24px;
+  }
+
+  .bonus-section {
+    display: flex;
+    flex-direction: column;
+    min-height: auto;
+    gap: 24px;
+    padding: 36px 24px 0;
+    border-radius: 28px;
+  }
+
+  .bonus-copy {
+    width: 100%;
+    padding: 0;
+  }
+
+  .bonus-copy p {
+    margin-bottom: 28px;
+    font-size: 19px;
+    line-height: 28px;
+  }
+
+  .gift-image {
+    width: min(100%, 520px);
+    max-height: none;
+    margin: 0 auto;
+  }
+
+  .site-footer {
+    padding: 24px 12px 16px;
+  }
+
+  .footer-card {
+    padding: 28px 16px;
+  }
+
+  .contact-row {
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .contact-row a,
+  .address-item {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .footer-bottom {
+    width: 100%;
+    flex-direction: column;
+    gap: 12px;
+    text-align: center;
+  }
+}
