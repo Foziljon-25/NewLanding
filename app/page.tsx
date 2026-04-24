@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import { useState } from "react";
+import { useEffect, useRef, useState, type CSSProperties } from "react";
 
 const asset = (name: string) => `/assets/procare/${name}`;
 
@@ -15,6 +15,8 @@ type PartnerLogo = {
 type ServiceTab = {
   label: string;
   icon: string;
+  iconWidth: number;
+  iconHeight: number;
   title: string;
   description: string;
   mediaNote: string;
@@ -24,6 +26,8 @@ type ServiceTab = {
 type WhyItem = {
   title: string;
   icon: string;
+  iconWidth: number;
+  iconHeight: number;
   mediaEyebrow: string;
   mediaBody: string;
   mediaStat: string;
@@ -50,6 +54,7 @@ type FooterSocialLink = {
   icon: string;
   width: number;
   height: number;
+  defaultColor: string;
 };
 
 const partnerLogos: PartnerLogo[] = [
@@ -67,6 +72,8 @@ const serviceTabs: ServiceTab[] = [
   {
     label: "Display va sensor",
     icon: asset("service-tab-display.svg"),
+    iconWidth: 18,
+    iconHeight: 22,
     title: "Displey va sensorni almashtirish va tuzatish",
     description:
       "Sensor noto‘g‘ri ishlayaptimi yoki umuman javob bermayaptimi? Biz buni to‘g‘rilaymiz yoki telefoningizning ekran, sensor va oynasini sifatli va tezda almashtirib beramiz.",
@@ -76,6 +83,8 @@ const serviceTabs: ServiceTab[] = [
   {
     label: "Orqa oyna",
     icon: asset("service-tab-back.svg"),
+    iconWidth: 18,
+    iconHeight: 22,
     title: "Orqa oynani almashtirish va tiklash",
     description:
       "Korpusning orqa qismi yorilgan yoki chizilib ketgan bo‘lsa, qurilmangiz ko‘rinishi va himoyasini yo‘qotmaydigan darajada ehtiyotkorlik bilan yangilaymiz.",
@@ -85,6 +94,8 @@ const serviceTabs: ServiceTab[] = [
   {
     label: "Smartfon ekrani",
     icon: asset("service-tab-screen.svg"),
+    iconWidth: 18,
+    iconHeight: 22,
     title: "Smartfon ekranini diagnostika qilish va tiklash",
     description:
       "Tasvir o‘chib qolsa, dog‘ tushsa yoki sensor qatlamida kechikish bo‘lsa, muammoni tezda aniqlab, eng mos ekran yechimini tavsiya qilamiz.",
@@ -94,6 +105,8 @@ const serviceTabs: ServiceTab[] = [
   {
     label: "Modem va antenna",
     icon: asset("service-tab-modem.svg"),
+    iconWidth: 22,
+    iconHeight: 20,
     title: "Modem va antenna bilan bog‘liq nosozliklar",
     description:
       "Signal sustligi, tarmoq ushlamaslik yoki qo‘ng‘iroq sifati bilan bog‘liq muammolarda plataning kerakli qismini tekshirib, aloqa sifatini qayta tiklaymiz.",
@@ -103,6 +116,8 @@ const serviceTabs: ServiceTab[] = [
   {
     label: "Wi-Fi va Bluetooth",
     icon: asset("service-tab-wifi.svg"),
+    iconWidth: 22,
+    iconHeight: 22,
     title: "Wi‑Fi va Bluetooth ulanishlarini sozlash",
     description:
       "Qurilmangiz tarmoqqa ulanmasa yoki aksessuarlarni topmasa, modul, plata va dasturiy qatlamni tekshirib, ulanishlarni barqaror holatga keltiramiz.",
@@ -112,6 +127,8 @@ const serviceTabs: ServiceTab[] = [
   {
     label: "Batareya",
     icon: asset("service-tab-battery.svg"),
+    iconWidth: 22,
+    iconHeight: 17,
     title: "Batareyani almashtirish va quvvat tizimini tekshirish",
     description:
       "Telefon tez zaryadsizlanayotgan, qizib ketayotgan yoki foizlarni noto‘g‘ri ko‘rsatayotgan bo‘lsa, batareya va quvvat boshqaruvi qismlarini yangilaymiz.",
@@ -130,6 +147,8 @@ const whyItems: WhyItem[] = [
   {
     title: "Maxsus chegirma va bonus dasturlari",
     icon: asset("why-discount.svg"),
+    iconWidth: 24,
+    iconHeight: 24,
     mediaEyebrow: "Sodiqlik dasturi",
     mediaBody:
       "Doimiy mijozlar uchun bonus, qayta murojaatlarda qulay narx va mavsumiy takliflar bilan xizmatni yanada foydali qilamiz.",
@@ -141,6 +160,8 @@ const whyItems: WhyItem[] = [
   {
     title: "Tezkor xizmat va qulay lokatsiyalar",
     icon: asset("why-location.svg"),
+    iconWidth: 24,
+    iconHeight: 24,
     mediaEyebrow: "Qulay servis nuqtalari",
     mediaBody:
       "Servis markazlarimizga tez yetib kelish mumkin, ichki jarayonlar esa ortiqcha kutishsiz qabul qilish va topshirishga moslashtirilgan.",
@@ -152,6 +173,8 @@ const whyItems: WhyItem[] = [
   {
     title: "Premium himoya xizmatlari",
     icon: asset("why-premium.svg"),
+    iconWidth: 24,
+    iconHeight: 24,
     mediaEyebrow: "Qo‘shimcha himoya",
     mediaBody:
       "Ta’mirdan keyingi holatni uzoq saqlash uchun himoya aksessuarlari, profilaktika va foydalanish bo‘yicha amaliy tavsiyalarni ham beramiz.",
@@ -163,6 +186,8 @@ const whyItems: WhyItem[] = [
   {
     title: "Diagnostika va maslahat",
     icon: asset("why-diagnostic.svg"),
+    iconWidth: 24,
+    iconHeight: 24,
     mediaEyebrow: "Aniq tashxis",
     mediaBody:
       "Muammo manbasini almashtirishdan oldin to‘liq tekshirib chiqamiz, shuning uchun mijozga keraksiz xarajat emas, aniq yechim tavsiya qilinadi.",
@@ -174,6 +199,8 @@ const whyItems: WhyItem[] = [
   {
     title: "Rasmiy ehtiyot qismlari bilan ta’mirlash",
     icon: asset("why-official.svg"),
+    iconWidth: 24,
+    iconHeight: 24,
     mediaEyebrow: "Ishonchli komplektatsiya",
     mediaBody:
       "Taqdim etilayotgan detallar sifat va moslik bo‘yicha sinchiklab tanlanadi, shu bois ta’mirdan keyingi ishlash muddati barqaror bo‘ladi.",
@@ -200,12 +227,6 @@ const teamMembers: TeamMember[] = [
     name: "Marupov Abdulloh Olimjon o‘g‘li",
     role: "Pro",
     image: asset("team-marupov.png"),
-    imageClass: "member-photo--tall member-photo--lower"
-  },
-  {
-    name: "Kurbanov Muzafar Mirazimovich",
-    role: "Pro",
-    image: asset("team-kurbanov-pro.png"),
     imageClass: "member-photo--tall member-photo--lower"
   },
   {
@@ -256,11 +277,179 @@ const faqItems: FaqItem[] = [
 ];
 
 const footerSocialLinks: FooterSocialLink[] = [
-  { label: "Telegram", icon: asset("footer-telegram.svg"), width: 18, height: 18 },
-  { label: "Instagram", icon: asset("footer-instagram.svg"), width: 20, height: 20 },
-  { label: "YouTube", icon: asset("footer-youtube.svg"), width: 18, height: 18 },
-  { label: "Facebook", icon: asset("footer-facebook.svg"), width: 12, height: 22 }
+  { label: "Telegram", icon: asset("footer-telegram.svg"), width: 18, height: 18, defaultColor: "#ffffff" },
+  { label: "Instagram", icon: asset("footer-instagram.svg"), width: 20, height: 20, defaultColor: "#ffffff" },
+  { label: "YouTube", icon: asset("footer-youtube.svg"), width: 20, height: 15, defaultColor: "#ffffff" },
+  { label: "Facebook", icon: asset("footer-facebook.svg"), width: 11, height: 20, defaultColor: "#ffffff" }
 ];
+
+function buildMaskStyle({
+  src,
+  width,
+  height,
+  color
+}: {
+  src: string;
+  width: number;
+  height: number;
+  color?: string;
+}) {
+  return {
+    width: `${width}px`,
+    height: `${height}px`,
+    ...(color ? { backgroundColor: color } : {}),
+    WebkitMaskImage: `url("${src}")`,
+    WebkitMaskRepeat: "no-repeat",
+    WebkitMaskPosition: "center",
+    WebkitMaskSize: "contain",
+    maskImage: `url("${src}")`,
+    maskRepeat: "no-repeat",
+    maskPosition: "center",
+    maskSize: "contain"
+  } as CSSProperties;
+}
+
+function MaskIcon({
+  src,
+  width,
+  height,
+  className,
+  color
+}: {
+  src: string;
+  width: number;
+  height: number;
+  className?: string;
+  color?: string;
+}) {
+  return <span aria-hidden="true" className={["mask-icon", className].filter(Boolean).join(" ")} style={buildMaskStyle({ src, width, height, color })} />;
+}
+
+function useHorizontalCarousel({
+  autoScroll = false,
+  speed = 0.45
+}: {
+  autoScroll?: boolean;
+  speed?: number;
+} = {}) {
+  const ref = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const element = ref.current;
+
+    if (!element) {
+      return;
+    }
+
+    let animationFrame = 0;
+    let hovering = false;
+    let dragging = false;
+    let startX = 0;
+    let startScrollLeft = 0;
+    const mediaQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
+
+    const getLoopWidth = () => (autoScroll ? element.scrollWidth / 2 : 0);
+
+    const normalizeLoop = () => {
+      const loopWidth = getLoopWidth();
+
+      if (!loopWidth) {
+        return;
+      }
+
+      if (element.scrollLeft >= loopWidth) {
+        element.scrollLeft -= loopWidth;
+      }
+    };
+
+    const tick = () => {
+      if (autoScroll && !mediaQuery.matches && !hovering && !dragging) {
+        element.scrollLeft += speed;
+        normalizeLoop();
+      }
+
+      animationFrame = window.requestAnimationFrame(tick);
+    };
+
+    const handleMouseDown = (event: MouseEvent) => {
+      dragging = true;
+      startX = event.pageX;
+      startScrollLeft = element.scrollLeft;
+      element.classList.add("is-dragging");
+      event.preventDefault();
+    };
+
+    const handleMouseMove = (event: MouseEvent) => {
+      if (!dragging) {
+        return;
+      }
+
+      element.scrollLeft = startScrollLeft - (event.pageX - startX);
+      normalizeLoop();
+    };
+
+    const handleMouseUp = () => {
+      if (!dragging) {
+        return;
+      }
+
+      dragging = false;
+      element.classList.remove("is-dragging");
+    };
+
+    const handleMouseEnter = () => {
+      hovering = true;
+    };
+
+    const handleMouseLeave = () => {
+      hovering = false;
+    };
+
+    const handleFocus = () => {
+      hovering = true;
+    };
+
+    const handleBlur = () => {
+      hovering = false;
+    };
+
+    const handleTouchStart = () => {
+      hovering = true;
+    };
+
+    const handleTouchEnd = () => {
+      hovering = false;
+    };
+
+    animationFrame = window.requestAnimationFrame(tick);
+    element.addEventListener("mousedown", handleMouseDown);
+    element.addEventListener("mouseenter", handleMouseEnter);
+    element.addEventListener("mouseleave", handleMouseLeave);
+    element.addEventListener("focus", handleFocus);
+    element.addEventListener("blur", handleBlur);
+    element.addEventListener("touchstart", handleTouchStart, { passive: true });
+    element.addEventListener("touchend", handleTouchEnd, { passive: true });
+    element.addEventListener("touchcancel", handleTouchEnd, { passive: true });
+    window.addEventListener("mousemove", handleMouseMove);
+    window.addEventListener("mouseup", handleMouseUp);
+
+    return () => {
+      window.cancelAnimationFrame(animationFrame);
+      element.removeEventListener("mousedown", handleMouseDown);
+      element.removeEventListener("mouseenter", handleMouseEnter);
+      element.removeEventListener("mouseleave", handleMouseLeave);
+      element.removeEventListener("focus", handleFocus);
+      element.removeEventListener("blur", handleBlur);
+      element.removeEventListener("touchstart", handleTouchStart);
+      element.removeEventListener("touchend", handleTouchEnd);
+      element.removeEventListener("touchcancel", handleTouchEnd);
+      window.removeEventListener("mousemove", handleMouseMove);
+      window.removeEventListener("mouseup", handleMouseUp);
+    };
+  }, [autoScroll, speed]);
+
+  return ref;
+}
 
 function ButtonLink({
   children,
@@ -329,6 +518,19 @@ function Header() {
 function Hero() {
   return (
     <section className="hero-section" id="hero" data-node-id="3035:35923">
+      <video
+        autoPlay
+        className="hero-video"
+        loop
+        muted
+        playsInline
+        preload="auto"
+        aria-hidden="true"
+      >
+        <source src={asset("hero-video.mp4")} type="video/mp4" />
+      </video>
+      <div className="hero-overlay" aria-hidden="true" />
+
       <div className="hero-copy">
         <h1>
           Professional <span>servis</span> markazi
@@ -351,10 +553,12 @@ function Hero() {
 }
 
 function BrandStrip() {
+  const brandRef = useHorizontalCarousel({ autoScroll: true, speed: 0.5 });
+
   return (
     <section className="brand-strip" aria-label="Bizning xizmatlarimiz" data-node-id="3040:35961">
       <p>Bizning xizmatlarimiz</p>
-      <div className="brand-viewport" tabIndex={0} aria-label="Brendlar ro‘yxati">
+      <div className="brand-viewport" ref={brandRef} tabIndex={0} aria-label="Brendlar ro‘yxati">
         <div className="brand-track">
           {partnerLogos.map((logo, index) => (
             <div className="brand-card" key={`${logo.alt}-${index}`}>
@@ -396,7 +600,12 @@ function ServiceFeature() {
                 type="button"
                 onClick={() => setActiveServiceIndex(index)}
               >
-                <Image src={tab.icon} alt="" width={20} height={20} />
+                <MaskIcon
+                  className="service-tab-icon"
+                  src={tab.icon}
+                  width={tab.iconWidth}
+                  height={tab.iconHeight}
+                />
                 <span>{tab.label}</span>
               </button>
             );
@@ -411,10 +620,6 @@ function ServiceFeature() {
         data-node-id="3042:36014"
       >
         <div className="video-fill-fallback" style={{ backgroundPosition: activeService.mediaPosition }} />
-        <div className="service-media-overlay">
-          <strong>{activeService.label}</strong>
-          <span>{activeService.mediaNote}</span>
-        </div>
         <Image className="media-logo" src={asset("procare-logo-header.svg")} alt="Procare" width={67} height={22} />
       </article>
     </section>
@@ -486,7 +691,13 @@ function WhyProcare() {
                 onClick={() => setActiveWhyIndex(index)}
               >
                 <span>
-                  <Image src={item.icon} alt="" width={24} height={24} />
+                  <Image
+                    className="why-item-icon-image"
+                    src={item.icon}
+                    alt=""
+                    width={item.iconWidth}
+                    height={item.iconHeight}
+                  />
                 </span>
                 <h3>{item.title}</h3>
               </button>
@@ -553,11 +764,13 @@ function ProboxBanner() {
 }
 
 function Team() {
+  const teamRef = useHorizontalCarousel();
+
   return (
     <section className="team-section" data-node-id="3059:36612">
       <SectionTitle title="Bizning jamoamiz!" accent="jamoamiz!" />
       <p className="section-subtitle">Bizning mijozlarimiz tanlashimizning asosiy sabablari</p>
-      <div className="team-track" tabIndex={0} aria-label="Jamoa a’zolari">
+      <div className="team-track" ref={teamRef} tabIndex={0} aria-label="Jamoa a’zolari">
         {teamMembers.map((member) => (
           <article className="team-card" key={`${member.name}-${member.role}`}>
             <div className="member-photo">
@@ -652,7 +865,6 @@ function Faq() {
               >
                 <div className="faq-heading">
                   <h3>{item.question}</h3>
-                  <p>{item.subtext}</p>
                 </div>
                 <span className="faq-chevron" aria-hidden="true" />
               </button>
@@ -677,20 +889,20 @@ function Footer() {
         <div className="footer-contacts">
           <a href="tel:+998781134774">
             <span className="footer-contact-icon footer-phone-icon">
-              <Image src={asset("footer-phone-1.svg")} alt="" width={16} height={16} />
-              <Image src={asset("footer-phone-2.svg")} alt="" width={8} height={8} />
+              <MaskIcon className="footer-phone-main" src={asset("footer-phone-1.svg")} width={19} height={19} color="var(--blue)" />
+              <MaskIcon className="footer-phone-accent" src={asset("footer-phone-2.svg")} width={8} height={8} color="var(--blue)" />
             </span>
             <span>+998 78 113 47 74</span>
           </a>
           <a href="mailto:procare@gmail.com">
             <span className="footer-contact-icon">
-              <Image src={asset("footer-mail.svg")} alt="" width={20} height={20} />
+              <MaskIcon className="footer-contact-symbol" src={asset("footer-mail.svg")} width={20} height={16} color="var(--blue)" />
             </span>
             <span>procare@gmail.com</span>
           </a>
           <a href="https://maps.google.com/?q=Qoratosh%20ko%E2%80%98chasi%2C%205B">
             <span className="footer-contact-icon">
-              <Image src={asset("footer-location.svg")} alt="" width={20} height={20} />
+              <MaskIcon className="footer-contact-symbol" src={asset("footer-location.svg")} width={18} height={22} color="var(--blue)" />
             </span>
             <span>Qoratosh ko‘chasi, 5B</span>
           </a>
@@ -698,8 +910,13 @@ function Footer() {
         <div className="social-links" aria-label="Ijtimoiy tarmoqlar">
           {footerSocialLinks.map((link) => (
             <a href="#" aria-label={link.label} key={link.label}>
-              <Image className="social-bg" src={asset("footer-social-bg.svg")} alt="" width={40} height={40} loading="eager" />
-              <Image className="social-icon" src={link.icon} alt="" width={link.width} height={link.height} loading="eager" />
+              <MaskIcon
+                className="social-icon"
+                src={link.icon}
+                width={link.width}
+                height={link.height}
+                color={link.defaultColor}
+              />
             </a>
           ))}
         </div>
