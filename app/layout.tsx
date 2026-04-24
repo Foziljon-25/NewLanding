@@ -9,8 +9,16 @@ const geologica = Geologica({
 });
 
 export const metadata: Metadata = {
-  title: "Probox Marketplace",
-  description: "Probox orqali iPhone xarid qilish uchun landing sahifa"
+  title: "Procare | Professional servis markazi",
+  description:
+    "Procare servis markazi Apple qurilmalari uchun diagnostika, ta'mirlash, ehtiyot qismlar va kafolatli xizmatlarni taklif qiladi.",
+  openGraph: {
+    title: "Procare | Professional servis markazi",
+    description:
+      "Apple qurilmalari uchun tezkor, kafolatli va professional ta'mirlash xizmatlari.",
+    type: "website",
+    locale: "uz_UZ"
+  }
 };
 
 export default function RootLayout({
