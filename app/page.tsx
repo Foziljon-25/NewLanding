@@ -57,6 +57,8 @@ type FooterSocialLink = {
   defaultColor: string;
 };
 
+type ThemeMode = "light" | "dark";
+
 const partnerLogos: PartnerLogo[] = [
   { src: asset("brand-xiaomi.png"), alt: "Xiaomi", width: 110, height: 56 },
   { src: asset("brand-apple.png"), alt: "Apple", width: 104, height: 16 },
@@ -242,19 +244,25 @@ const faqItems: FaqItem[] = [
     question: "iPhone’ni ta’mirlash qancha vaqt oladi?",
     subtext: "Ko‘p uchraydigan ta’mirlar odatda shu kunning o‘zida yakunlanadi.",
     answer:
-      "Odatda ta’mirlash ishlari 30 daqiqadan 2 soatgacha davom etadi. Masalan, ekran almashtirish 1 soat atrofida vaqt oladi. Murakkab muammolar esa to‘liq diagnostikani talab qilishi mumkin. Har doim iloji boricha tez va sifatli xizmat ko‘rsatamiz."
+      "Odatda ta’mirlash ishlari 30 daqiqadan 2 soatgacha davom etadi. Murakkab muammolar esa to‘liq diagnostikani talab qilishi mumkin."
   },
   {
-    question: "Sizlar asl (original) ehtiyot qismlardan foydalanasizlarmi?",
+    question: "Sizlar asl ehtiyot qismlardan foydalanasizlarmi?",
     subtext: "Har bir detal qurilmaga mosligi va sifat darajasi bo‘yicha tanlanadi.",
     answer:
       "Ha, imkon qadar original yoki originalga maksimal yaqin, tekshirilgan sifatdagi ehtiyot qismlar bilan ishlaymiz. Qurilmangiz modeli va ta’mir turiga qarab bir nechta variantni oldindan tushuntirib beramiz."
   },
   {
-    question: "Apple mahsulotimni ta'mirlangandan so'ng qanday kafolat olishim mumkin?",
+    question: "Apple mahsulotim ta'mirlangandan so'ng qanday kafolat olishim mumkin?",
     subtext: "Bajarilgan ish turiga qarab kafolat muddati rasmiy tarzda beriladi.",
     answer:
       "Ta’mirdan so‘ng bajarilgan ish va o‘rnatilgan detal turiga qarab kafolat beriladi. Qurilmani topshirayotganda kafolat shartlari, amal qilish muddati va murojaat qilish tartibini aniq ko‘rsatib beramiz."
+  },
+  {
+    question: "Mahsulotimni ta'mirlash uchun qanday yo'l tutishim kerak?",
+    subtext: "Qabul jarayoni sodda: murojaat, diagnostika, tasdiq va ta’mir.",
+    answer:
+      "Servis markazimizga qurilmangiz bilan kelishingiz yoki oldindan bog‘lanib muammo haqida qisqacha ma’lumot qoldirishingiz mumkin. Qurilma qabul qilingach diagnostika o‘tkaziladi, so‘ng narx va muddat tasdiqlanib, ta’mir jarayoni boshlanadi."
   },
   {
     question: "Agar men iPhone'ni o‘zim ta'mirlashga urinib ko‘rsam, bu kafolatga ta'sir qiladimi?",
@@ -267,12 +275,6 @@ const faqItems: FaqItem[] = [
     subtext: "Servis doiramiz iPhone bilan cheklanmaydi.",
     answer:
       "Yo‘q, biz iPhone bilan birga iPad, MacBook, Apple Watch va ayrim boshqa Apple qurilmalarini ham qabul qilamiz. Qurilma turiga qarab diagnostika va ta’mir tartibi alohida belgilanadi."
-  },
-  {
-    question: "Mahsulotimni ta'mirlash uchun qanday yo'l tutishim kerak?",
-    subtext: "Qabul jarayoni sodda: murojaat, diagnostika, tasdiq va ta’mir.",
-    answer:
-      "Servis markazimizga qurilmangiz bilan kelishingiz yoki oldindan bog‘lanib muammo haqida qisqacha ma’lumot qoldirishingiz mumkin. Qurilma qabul qilingach diagnostika o‘tkaziladi, so‘ng narx va muddat tasdiqlanib, ta’mir jarayoni boshlanadi."
   }
 ];
 
@@ -490,9 +492,21 @@ function SectionTitle({
   );
 }
 
-function Header() {
+function Header({
+  theme,
+  onThemeToggle
+}: {
+  theme: ThemeMode;
+  onThemeToggle: () => void;
+}) {
+  const nextThemeLabel = theme === "dark" ? "Light mode yoqish" : "Dark mode yoqish";
+
   return (
     <header className="site-header" data-node-id="3035:35828">
+      <button className="mobile-flag-button" type="button" aria-label="Tilni tanlash">
+        <Image src={asset("uzbekistan-flag.svg")} alt="" width={20} height={20} />
+      </button>
+
       <a className="logo-link" href="#hero" aria-label="Procare bosh sahifasi">
         <Image src={asset("procare-logo-header.svg")} alt="Procare" width={136} height={45} priority />
       </a>
@@ -503,6 +517,20 @@ function Header() {
       </nav>
 
       <div className="header-actions">
+        <button
+          aria-label={nextThemeLabel}
+          aria-pressed={theme === "dark"}
+          className="theme-toggle"
+          type="button"
+          onClick={onThemeToggle}
+        >
+          {theme === "dark" ? (
+            <Image className="header-action-icon header-action-icon--sun" src={asset("header-sun.svg")} alt="" width={24} height={24} />
+          ) : (
+            <Image className="header-action-icon" src={asset("header-moon.svg")} alt="" width={20} height={20} />
+          )}
+        </button>
+        <span className="header-divider" aria-hidden="true" />
         <button className="language-switch" type="button" aria-label="Tilni tanlash">
           <Image src={asset("uzbekistan-flag.svg")} alt="" width={24} height={24} />
           <span>O’zb</span>
@@ -510,6 +538,9 @@ function Header() {
         <ButtonLink href="#contact" variant="outline">
           Ariza qoldirish
         </ButtonLink>
+        <a className="mobile-chat-button" href="#contact" aria-label="Murojaat qilish">
+          <Image className="header-action-icon" src={asset("header-chat.svg")} alt="" width={20} height={20} />
+        </a>
       </div>
     </header>
   );
@@ -620,6 +651,19 @@ function ServiceFeature() {
         data-node-id="3042:36014"
       >
         <div className="video-fill-fallback" style={{ backgroundPosition: activeService.mediaPosition }} />
+        <video
+          autoPlay
+          className="service-video"
+          loop
+          muted
+          playsInline
+          preload="metadata"
+          style={{ objectPosition: activeService.mediaPosition }}
+          aria-hidden="true"
+        >
+          <source src={asset("hero-video.mp4")} type="video/mp4" />
+        </video>
+        <div className="service-media-overlay" aria-hidden="true" />
         <Image className="media-logo" src={asset("procare-logo-header.svg")} alt="Procare" width={67} height={22} />
       </article>
     </section>
@@ -769,7 +813,7 @@ function Team() {
   return (
     <section className="team-section" data-node-id="3059:36612">
       <SectionTitle title="Bizning jamoamiz!" accent="jamoamiz!" />
-      <p className="section-subtitle">Bizning mijozlarimiz tanlashimizning asosiy sabablari</p>
+      <p className="section-subtitle">Mutaxassislarimiz qurilmangizga ehtiyotkorlik bilan yondashadi</p>
       <div className="team-track" ref={teamRef} tabIndex={0} aria-label="Jamoa a’zolari">
         {teamMembers.map((member) => (
           <article className="team-card" key={`${member.name}-${member.role}`}>
@@ -922,7 +966,7 @@ function Footer() {
         </div>
       </div>
       <div className="footer-bottom">
-        <p>©Procare, 2026</p>
+        <p>© Procare, 2026</p>
         <div>
           <a href="#">Ommaviy offerta</a>
           <a href="#">Maxfiylik siyosati</a>
@@ -933,10 +977,35 @@ function Footer() {
 }
 
 export default function Home() {
+  const [theme, setTheme] = useState<ThemeMode>("light");
+  const [themeLoaded, setThemeLoaded] = useState(false);
+
+  useEffect(() => {
+    const storedTheme = window.localStorage.getItem("procare-theme");
+
+    if (storedTheme === "light" || storedTheme === "dark") {
+      setTheme(storedTheme);
+    }
+
+    setThemeLoaded(true);
+  }, []);
+
+  useEffect(() => {
+    document.documentElement.dataset.theme = theme;
+
+    if (themeLoaded) {
+      window.localStorage.setItem("procare-theme", theme);
+    }
+  }, [theme, themeLoaded]);
+
+  const toggleTheme = () => {
+    setTheme((currentTheme) => (currentTheme === "dark" ? "light" : "dark"));
+  };
+
   return (
-    <main>
+    <main data-theme={theme}>
       <div className="page-frame">
-        <Header />
+        <Header theme={theme} onThemeToggle={toggleTheme} />
         <Hero />
       </div>
       <BrandStrip />
