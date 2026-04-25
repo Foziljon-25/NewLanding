@@ -173,6 +173,7 @@ main {
 .header-action-icon--sun {
   width: 24px;
   height: 24px;
+  fill: #d8e2ef;
 }
 
 .theme-icon--light::before {
