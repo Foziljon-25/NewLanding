@@ -2,6 +2,7 @@
 
 import Image from "next/image";
 import { useEffect, useRef, useState, type CSSProperties } from "react";
+import { useProcarePreferences, type LanguageCode, type ThemeMode } from "./components/use-procare-preferences";
 
 const asset = (name: string) => `/assets/procare/${name}`;
 
@@ -56,9 +57,6 @@ type FooterSocialLink = {
   height: number;
   defaultColor: string;
 };
-
-type ThemeMode = "light" | "dark";
-type LanguageCode = "uz" | "ru" | "en";
 
 type LandingCopy = {
   header: {
@@ -1275,7 +1273,7 @@ function Header({
       </a>
 
       <nav className="main-nav" aria-label={content.header.navAria}>
-        <a href="#calculator">{content.header.calculator}</a>
+        <a href="/calculator">{content.header.calculator}</a>
         <a href="#why-procare">{content.header.about}</a>
       </nav>
 
@@ -1376,7 +1374,7 @@ function Hero({ content }: { content: LandingCopy }) {
         </h1>
         <p>{content.hero.subtitle}</p>
         <div className="hero-actions">
-          <ButtonLink href="#calculator" variant="glass">
+          <ButtonLink href="/calculator" variant="glass">
             {content.hero.calculator}
           </ButtonLink>
           <ButtonLink href="#contact">{content.hero.contact}</ButtonLink>
@@ -1524,17 +1522,17 @@ function Calculator({ content }: { content: LandingCopy }) {
         </div>
 
         <div className="calculator-benefits">
-          {content.calculator.benefits.map((item) => (
-            <div className="calculator-benefit" key={item.label}>
+          {content.calculator.benefits.map((item, index) => (
+            <a className="calculator-benefit" href={index === 1 ? "/calculator/selection" : "/calculator"} key={item.label}>
               <span className={`calculator-icon calculator-icon--${item.tone}`}>
                 <Image src={item.icon} alt="" width={24} height={24} />
               </span>
               <b>{item.label}</b>
-            </div>
+            </a>
           ))}
         </div>
 
-        <ButtonLink href="#contact">{content.calculator.cta}</ButtonLink>
+        <ButtonLink href="/calculator">{content.calculator.cta}</ButtonLink>
       </article>
     </section>
   );
@@ -1810,41 +1808,8 @@ function Footer({ content }: { content: LandingCopy }) {
 }
 
 export default function Home() {
-  const [theme, setTheme] = useState<ThemeMode>("light");
-  const [themeLoaded, setThemeLoaded] = useState(false);
-  const [language, setLanguage] = useState<LanguageCode>("uz");
+  const { theme, setTheme, language, setLanguage } = useProcarePreferences();
   const content = copy[language];
-
-  useEffect(() => {
-    const storedTheme = window.localStorage.getItem("procare-theme");
-    const storedLanguage = window.localStorage.getItem("procare-language");
-
-    if (storedTheme === "light" || storedTheme === "dark") {
-      setTheme(storedTheme);
-    }
-
-    if (storedLanguage === "uz" || storedLanguage === "ru" || storedLanguage === "en") {
-      setLanguage(storedLanguage);
-    }
-
-    setThemeLoaded(true);
-  }, []);
-
-  useEffect(() => {
-    document.documentElement.dataset.theme = theme;
-
-    if (themeLoaded) {
-      window.localStorage.setItem("procare-theme", theme);
-    }
-  }, [theme, themeLoaded]);
-
-  useEffect(() => {
-    document.documentElement.lang = language;
-
-    if (themeLoaded) {
-      window.localStorage.setItem("procare-language", language);
-    }
-  }, [language, themeLoaded]);
 
   const toggleTheme = () => {
     setTheme((currentTheme) => (currentTheme === "dark" ? "light" : "dark"));
