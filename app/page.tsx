@@ -933,11 +933,15 @@ function MaskIcon({
 function useHorizontalCarousel({
   autoScroll = false,
   speed = 0.45,
-  loop = false
+  loop = false,
+  pauseOnHover = true,
+  respectReducedMotion = true
 }: {
   autoScroll?: boolean;
   speed?: number;
   loop?: boolean;
+  pauseOnHover?: boolean;
+  respectReducedMotion?: boolean;
 } = {}) {
   const ref = useRef<HTMLDivElement>(null);
 
@@ -951,6 +955,7 @@ function useHorizontalCarousel({
     let animationFrame = 0;
     let hovering = false;
     let dragging = false;
+    let touching = false;
     let startX = 0;
     let startScrollLeft = 0;
     const mediaQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
@@ -986,7 +991,9 @@ function useHorizontalCarousel({
     };
 
     const tick = () => {
-      if (autoScroll && !mediaQuery.matches && !hovering && !dragging) {
+      const shouldReduceMotion = respectReducedMotion && mediaQuery.matches;
+
+      if (autoScroll && !shouldReduceMotion && !dragging && !touching && !(pauseOnHover && hovering)) {
         element.scrollLeft += speed;
         normalizeLoop();
       }
@@ -1021,7 +1028,9 @@ function useHorizontalCarousel({
     };
 
     const handleMouseEnter = () => {
-      hovering = true;
+      if (pauseOnHover) {
+        hovering = true;
+      }
     };
 
     const handleMouseLeave = () => {
@@ -1029,7 +1038,9 @@ function useHorizontalCarousel({
     };
 
     const handleFocus = () => {
-      hovering = true;
+      if (pauseOnHover) {
+        hovering = true;
+      }
     };
 
     const handleBlur = () => {
@@ -1037,11 +1048,11 @@ function useHorizontalCarousel({
     };
 
     const handleTouchStart = () => {
-      hovering = true;
+      touching = true;
     };
 
     const handleTouchEnd = () => {
-      hovering = false;
+      touching = false;
       normalizeLoop();
     };
 
@@ -1080,7 +1091,7 @@ function useHorizontalCarousel({
       window.removeEventListener("mousemove", handleMouseMove);
       window.removeEventListener("mouseup", handleMouseUp);
     };
-  }, [autoScroll, loop, speed]);
+  }, [autoScroll, loop, pauseOnHover, respectReducedMotion, speed]);
 
   return ref;
 }
@@ -1381,7 +1392,13 @@ function Hero({ content }: { content: LandingCopy }) {
 }
 
 function BrandStrip({ content }: { content: LandingCopy }) {
-  const brandRef = useHorizontalCarousel({ autoScroll: true, loop: true, speed: 0.5 });
+  const brandRef = useHorizontalCarousel({
+    autoScroll: true,
+    loop: true,
+    pauseOnHover: false,
+    respectReducedMotion: false,
+    speed: 0.5
+  });
   const carouselCopies = Array.from({ length: 4 }, (_, index) => index);
 
   return (

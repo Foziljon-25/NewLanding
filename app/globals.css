@@ -574,7 +574,7 @@ main > .page-frame:first-child {
   overflow-x: auto;
   overflow-y: hidden;
   padding: 0 40px;
-  scroll-snap-type: x proximity;
+  scroll-snap-type: none;
   scrollbar-width: none;
   -ms-overflow-style: none;
   overscroll-behavior-x: contain;
