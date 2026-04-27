@@ -60,6 +60,7 @@ export type RequestDialogContent = {
   namePlaceholder: string;
   phonePlaceholder: string;
   deviceTypePlaceholder: string;
+  otherDevicePlaceholder: string;
   messagePlaceholder: string;
   deviceTypes: string[];
   cancel: string;
@@ -71,8 +72,10 @@ export type RequestDialogContent = {
   success: string;
   error: string;
   requiredError: string;
+  phoneError: string;
   apiNotConfigured: string;
   closeAria: string;
+  clearOtherDeviceAria: string;
 };
 
 const footerSocialLinks = [
@@ -92,6 +95,26 @@ const languageOptions: Array<{
   { code: "ru", shortLabel: "Рус", labels: { uz: "Ruscha", ru: "Русский", en: "Russian" }, flagSrc: asset("language-flag-ru.svg") },
   { code: "en", shortLabel: "Eng", labels: { uz: "Inglizcha", ru: "Английский", en: "English" }, flagSrc: asset("language-flag-en.svg") }
 ];
+
+function normalizeUzPhoneDigits(value: string) {
+  const digits = value.replace(/\D/g, "");
+  const withoutCountryCode = digits.startsWith("998") ? digits.slice(3) : digits;
+
+  return withoutCountryCode.slice(0, 9);
+}
+
+function formatUzPhoneDigits(value: string) {
+  const digits = normalizeUzPhoneDigits(value);
+  const groups = [digits.slice(0, 2), digits.slice(2, 5), digits.slice(5, 7), digits.slice(7, 9)].filter(Boolean);
+
+  return groups.join(" ");
+}
+
+function formatUzPhoneNumber(value: string) {
+  const formattedDigits = formatUzPhoneDigits(value);
+
+  return formattedDigits ? `+998 ${formattedDigits}` : "+998";
+}
 
 function buildMaskStyle({
   src,
@@ -279,11 +302,14 @@ export function RequestDialogPortal({
 }) {
   const [isMounted, setMounted] = useState(false);
   const [name, setName] = useState("");
-  const [phone, setPhone] = useState("");
+  const [phoneDigits, setPhoneDigits] = useState("");
   const [deviceType, setDeviceType] = useState("");
+  const [otherDeviceType, setOtherDeviceType] = useState("");
   const [message, setMessage] = useState("");
   const [status, setStatus] = useState<"idle" | "submitting" | "success" | "error">("idle");
   const [statusMessage, setStatusMessage] = useState("");
+  const otherDeviceTypeLabel = content.deviceTypes[content.deviceTypes.length - 1] ?? "";
+  const isOtherDeviceType = deviceType === otherDeviceTypeLabel;
 
   useEffect(() => {
     setMounted(true);
@@ -321,9 +347,15 @@ export function RequestDialogPortal({
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
 
-    if (!name.trim() || !phone.trim() || !deviceType.trim()) {
+    if (!name.trim() || !phoneDigits.trim() || !deviceType.trim() || (isOtherDeviceType && !otherDeviceType.trim())) {
       setStatus("error");
       setStatusMessage(content.requiredError);
+      return;
+    }
+
+    if (phoneDigits.length !== 9) {
+      setStatus("error");
+      setStatusMessage(content.phoneError);
       return;
     }
 
@@ -338,16 +370,17 @@ export function RequestDialogPortal({
 
     try {
       await submitProcareRequest({
-        deviceType: deviceType.trim(),
+        deviceType: isOtherDeviceType ? `${deviceType.trim()}: ${otherDeviceType.trim()}` : deviceType.trim(),
         message: message.trim(),
         name: name.trim(),
-        phone: phone.trim(),
+        phone: formatUzPhoneNumber(phoneDigits),
         source: "procare_landing"
       });
 
       setName("");
-      setPhone("");
+      setPhoneDigits("");
       setDeviceType("");
+      setOtherDeviceType("");
       setMessage("");
       setStatus("success");
       setStatusMessage(content.success);
@@ -424,35 +457,57 @@ export function RequestDialogPortal({
             />
           </label>
 
-          <label className="request-field request-field--phone">
+          <label className="request-field request-field--phone" data-node-id="3149:43825">
             <span className="sr-only">{content.phonePlaceholder}</span>
-            <span className="request-phone-icon" aria-hidden="true" />
+            <Image className="request-phone-icon" src={asset("request-phone-calling.svg")} alt="" width={24} height={24} />
+            <span className="request-phone-prefix" aria-hidden="true">
+              +998
+            </span>
             <input
               autoComplete="tel"
-              inputMode="tel"
+              inputMode="numeric"
               name="phone"
-              placeholder={content.phonePlaceholder}
+              placeholder="00 000 00 00"
               type="tel"
-              value={phone}
-              onChange={(event) => setPhone(event.target.value)}
+              value={formatUzPhoneDigits(phoneDigits)}
+              onChange={(event) => setPhoneDigits(normalizeUzPhoneDigits(event.target.value))}
             />
           </label>
 
-          <label className={`request-field request-field--select ${deviceType ? "has-value" : ""}`}>
-            <span className="sr-only">{content.deviceTypePlaceholder}</span>
-            <select
-              name="deviceType"
-              value={deviceType}
-              onChange={(event) => setDeviceType(event.target.value)}
-            >
-              <option value="">{content.deviceTypePlaceholder}</option>
-              {content.deviceTypes.map((type) => (
-                <option value={type} key={type}>
-                  {type}
-                </option>
-              ))}
-            </select>
-          </label>
+          {isOtherDeviceType ? (
+            <label className="request-field request-field--other-device">
+              <span className="sr-only">{content.otherDevicePlaceholder}</span>
+              <div className="request-other-device-chip">
+                <span>{otherDeviceTypeLabel}</span>
+                <button
+                  type="button"
+                  aria-label={content.clearOtherDeviceAria}
+                  onClick={() => {
+                    setDeviceType("");
+                    setOtherDeviceType("");
+                  }}
+                />
+              </div>
+              <textarea
+                name="otherDeviceType"
+                placeholder={content.otherDevicePlaceholder}
+                value={otherDeviceType}
+                onChange={(event) => setOtherDeviceType(event.target.value)}
+              />
+            </label>
+          ) : (
+            <label className={`request-field request-field--select ${deviceType ? "has-value" : ""}`}>
+              <span className="sr-only">{content.deviceTypePlaceholder}</span>
+              <select name="deviceType" value={deviceType} onChange={(event) => setDeviceType(event.target.value)}>
+                <option value="">{content.deviceTypePlaceholder}</option>
+                {content.deviceTypes.map((type) => (
+                  <option value={type} key={type}>
+                    {type}
+                  </option>
+                ))}
+              </select>
+            </label>
+          )}
 
           <label className="request-field request-field--message">
             <span className="sr-only">{content.messagePlaceholder}</span>

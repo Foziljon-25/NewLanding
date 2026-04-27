@@ -401,6 +401,7 @@ const copy: Record<LanguageCode, LandingCopy> = {
       namePlaceholder: "Ismingiz",
       phonePlaceholder: "+998 00 000 00 00",
       deviceTypePlaceholder: "Telefon turi",
+      otherDevicePlaceholder: "Qurilma turini yozing",
       messagePlaceholder: "Izoh",
       deviceTypes: ["iPhone", "iPad", "MacBook", "Apple Watch", "Samsung", "Xiaomi", "Boshqa"],
       cancel: "Bekor qilish",
@@ -413,8 +414,10 @@ const copy: Record<LanguageCode, LandingCopy> = {
       success: "Arizangiz qabul qilindi. Operator tez orada bog'lanadi.",
       error: "Arizani yuborib bo'lmadi. Iltimos, keyinroq urinib ko'ring.",
       requiredError: "Ism, telefon raqam va telefon turini kiriting.",
+      phoneError: "Telefon raqamni +998 00 000 00 00 formatida kiriting.",
       apiNotConfigured: "Ariza API manzili sozlanmagan.",
-      closeAria: "Modal oynani yopish"
+      closeAria: "Modal oynani yopish",
+      clearOtherDeviceAria: "Boshqa qurilma turini olib tashlash"
     },
     hero: {
       beforeAccent: "Professional ",
@@ -504,6 +507,7 @@ const copy: Record<LanguageCode, LandingCopy> = {
       namePlaceholder: "Ваше имя",
       phonePlaceholder: "+998 00 000 00 00",
       deviceTypePlaceholder: "Тип телефона",
+      otherDevicePlaceholder: "Напишите тип устройства",
       messagePlaceholder: "Комментарий",
       deviceTypes: ["iPhone", "iPad", "MacBook", "Apple Watch", "Samsung", "Xiaomi", "Другое"],
       cancel: "Отменить",
@@ -515,8 +519,10 @@ const copy: Record<LanguageCode, LandingCopy> = {
       success: "Заявка принята. Оператор скоро свяжется с вами.",
       error: "Не удалось отправить заявку. Попробуйте позже.",
       requiredError: "Укажите имя, номер телефона и тип телефона.",
+      phoneError: "Введите номер телефона в формате +998 00 000 00 00.",
       apiNotConfigured: "Адрес API для заявок не настроен.",
-      closeAria: "Закрыть модальное окно"
+      closeAria: "Закрыть модальное окно",
+      clearOtherDeviceAria: "Удалить другой тип устройства"
     },
     hero: {
       beforeAccent: "Профессиональный ",
@@ -737,6 +743,7 @@ const copy: Record<LanguageCode, LandingCopy> = {
       namePlaceholder: "Your name",
       phonePlaceholder: "+998 00 000 00 00",
       deviceTypePlaceholder: "Phone type",
+      otherDevicePlaceholder: "Describe the device type",
       messagePlaceholder: "Comment",
       deviceTypes: ["iPhone", "iPad", "MacBook", "Apple Watch", "Samsung", "Xiaomi", "Other"],
       cancel: "Cancel",
@@ -748,8 +755,10 @@ const copy: Record<LanguageCode, LandingCopy> = {
       success: "Your request has been received. An operator will contact you soon.",
       error: "Could not send the request. Please try again later.",
       requiredError: "Enter your name, phone number and phone type.",
+      phoneError: "Enter the phone number in +998 00 000 00 00 format.",
       apiNotConfigured: "Request API URL is not configured.",
-      closeAria: "Close modal"
+      closeAria: "Close modal",
+      clearOtherDeviceAria: "Remove other device type"
     },
     hero: {
       beforeAccent: "Professional ",
