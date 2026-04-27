@@ -2506,11 +2506,24 @@ main {
 :root[data-theme="dark"] .mobile-flag-button,
 :root[data-theme="dark"] .mobile-chat-button,
 :root[data-theme="dark"] .service-tab,
-:root[data-theme="dark"] .why-item,
-:root[data-theme="dark"] .why-item span,
 :root[data-theme="dark"] .language-option {
   background: #172337;
   color: #d8e2ef;
+}
+
+:root[data-theme="dark"] .why-item {
+  border-color: rgba(255, 255, 255, 0.05);
+  background: rgba(255, 255, 255, 0.035);
+  color: #d8e2ef;
+}
+
+:root[data-theme="dark"] .why-item span {
+  background: rgba(255, 255, 255, 0.045);
+}
+
+:root[data-theme="dark"] .why-item:hover {
+  border-color: rgba(0, 191, 255, 0.2);
+  background: rgba(255, 255, 255, 0.055);
 }
 
 :root[data-theme="dark"] .theme-icon--light::after {
@@ -2540,10 +2553,19 @@ main {
 }
 
 :root[data-theme="dark"] .service-tab.is-active,
-:root[data-theme="dark"] .why-item.is-active,
 :root[data-theme="dark"] .language-option.is-active {
   background: #0d1726;
   color: #f8fafc;
+}
+
+:root[data-theme="dark"] .why-item.is-active {
+  border-color: rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.12);
+  color: #f8fafc;
+}
+
+:root[data-theme="dark"] .why-item.is-active span {
+  background: rgba(255, 255, 255, 0.08);
 }
 
 :root[data-theme="dark"] .service-tab-icon {
