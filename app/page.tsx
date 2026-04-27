@@ -2,6 +2,14 @@
 
 import Image from "next/image";
 import { useEffect, useRef, useState, type CSSProperties } from "react";
+import {
+  AppDownload as SharedAppDownload,
+  Faq as SharedFaq,
+  Footer as SharedFooter,
+  Header as SharedHeader,
+  RequestDialogPortal,
+  type RequestDialogContent
+} from "./components/procare-layout-sections";
 import { useProcarePreferences, type LanguageCode, type ThemeMode } from "./components/use-procare-preferences";
 
 const asset = (name: string) => `/assets/procare/${name}`;
@@ -71,6 +79,7 @@ type LandingCopy = {
     themeDark: string;
   };
   languageDialogTitle: string;
+  requestDialog: RequestDialogContent;
   hero: {
     beforeAccent: string;
     accent: string;
@@ -387,6 +396,22 @@ const copy: Record<LanguageCode, LandingCopy> = {
       themeDark: "Dark mode yoqish"
     },
     languageDialogTitle: "Ilova tili",
+    requestDialog: {
+      title: "Ariza qoldirish",
+      namePlaceholder: "Ismingiz",
+      phonePlaceholder: "+998 00 000 00 00",
+      deviceTypePlaceholder: "Telefon turi",
+      messagePlaceholder: "Izoh",
+      deviceTypes: ["iPhone", "iPad", "MacBook", "Apple Watch", "Samsung", "Xiaomi", "Boshqa"],
+      cancel: "Bekor qilish",
+      submit: "Yuborish",
+      submitting: "Yuborilmoqda",
+      success: "Arizangiz qabul qilindi. Operator tez orada bog'lanadi.",
+      error: "Arizani yuborib bo'lmadi. Iltimos, keyinroq urinib ko'ring.",
+      requiredError: "Ism, telefon raqam va telefon turini kiriting.",
+      apiNotConfigured: "Ariza API manzili sozlanmagan.",
+      closeAria: "Modal oynani yopish"
+    },
     hero: {
       beforeAccent: "Professional ",
       accent: "servis",
@@ -470,6 +495,22 @@ const copy: Record<LanguageCode, LandingCopy> = {
       themeDark: "Включить темную тему"
     },
     languageDialogTitle: "Язык приложения",
+    requestDialog: {
+      title: "Оставить заявку",
+      namePlaceholder: "Ваше имя",
+      phonePlaceholder: "+998 00 000 00 00",
+      deviceTypePlaceholder: "Тип телефона",
+      messagePlaceholder: "Комментарий",
+      deviceTypes: ["iPhone", "iPad", "MacBook", "Apple Watch", "Samsung", "Xiaomi", "Другое"],
+      cancel: "Отменить",
+      submit: "Отправить",
+      submitting: "Отправка",
+      success: "Заявка принята. Оператор скоро свяжется с вами.",
+      error: "Не удалось отправить заявку. Попробуйте позже.",
+      requiredError: "Укажите имя, номер телефона и тип телефона.",
+      apiNotConfigured: "Адрес API для заявок не настроен.",
+      closeAria: "Закрыть модальное окно"
+    },
     hero: {
       beforeAccent: "Профессиональный ",
       accent: "сервисный",
@@ -684,6 +725,22 @@ const copy: Record<LanguageCode, LandingCopy> = {
       themeDark: "Switch to dark mode"
     },
     languageDialogTitle: "App language",
+    requestDialog: {
+      title: "Leave a request",
+      namePlaceholder: "Your name",
+      phonePlaceholder: "+998 00 000 00 00",
+      deviceTypePlaceholder: "Phone type",
+      messagePlaceholder: "Comment",
+      deviceTypes: ["iPhone", "iPad", "MacBook", "Apple Watch", "Samsung", "Xiaomi", "Other"],
+      cancel: "Cancel",
+      submit: "Send",
+      submitting: "Sending",
+      success: "Your request has been received. An operator will contact you soon.",
+      error: "Could not send the request. Please try again later.",
+      requiredError: "Enter your name, phone number and phone type.",
+      apiNotConfigured: "Request API URL is not configured.",
+      closeAria: "Close modal"
+    },
     hero: {
       beforeAccent: "Professional ",
       accent: "service",
@@ -1097,12 +1154,22 @@ function useHorizontalCarousel({
 function ButtonLink({
   children,
   href = "#contact",
-  variant = "primary"
+  variant = "primary",
+  onClick
 }: {
   children: React.ReactNode;
   href?: string;
   variant?: "primary" | "glass" | "outline";
+  onClick?: () => void;
 }) {
+  if (onClick) {
+    return (
+      <button className={`button button--${variant}`} type="button" onClick={onClick}>
+        {children}
+      </button>
+    );
+  }
+
   return (
     <a className={`button button--${variant}`} href={href}>
       {children}
@@ -1350,7 +1417,7 @@ function Header({
   );
 }
 
-function Hero({ content }: { content: LandingCopy }) {
+function Hero({ content, onRequestOpen }: { content: LandingCopy; onRequestOpen: () => void }) {
   return (
     <section className="hero-section" id="hero" data-node-id="3035:35923">
       <video
@@ -1377,7 +1444,7 @@ function Hero({ content }: { content: LandingCopy }) {
           <ButtonLink href="/calculator" variant="glass">
             {content.hero.calculator}
           </ButtonLink>
-          <ButtonLink href="#contact">{content.hero.contact}</ButtonLink>
+          <ButtonLink onClick={onRequestOpen}>{content.hero.contact}</ButtonLink>
         </div>
       </div>
 
@@ -1429,7 +1496,7 @@ function BrandStrip({ content }: { content: LandingCopy }) {
   );
 }
 
-function ServiceFeature({ content }: { content: LandingCopy }) {
+function ServiceFeature({ content, onRequestOpen }: { content: LandingCopy; onRequestOpen: () => void }) {
   const [activeServiceIndex, setActiveServiceIndex] = useState(0);
   const activeService = content.serviceTabs[activeServiceIndex];
 
@@ -1440,7 +1507,7 @@ function ServiceFeature({ content }: { content: LandingCopy }) {
         <div className="service-copy">
           <h2>{activeService.title}</h2>
           <p>{activeService.description}</p>
-          <ButtonLink href="#contact">{content.hero.contact}</ButtonLink>
+          <ButtonLink onClick={onRequestOpen}>{content.hero.contact}</ButtonLink>
         </div>
 
         <div className="service-tabs" role="tablist" aria-label={content.servicesAria}>
@@ -1615,7 +1682,7 @@ function ProboxBanner({ content }: { content: LandingCopy }) {
           <span>{content.probox.accent}</span>
           {content.probox.titleAfterAccent}
         </h2>
-        <ButtonLink href="#contact">{content.probox.cta}</ButtonLink>
+        <ButtonLink href="https://probox.uz/">{content.probox.cta}</ButtonLink>
       </div>
       <Image
         className="probox-phone"
@@ -1809,6 +1876,7 @@ function Footer({ content }: { content: LandingCopy }) {
 
 export default function Home() {
   const { theme, setTheme, language, setLanguage } = useProcarePreferences();
+  const [isRequestDialogOpen, setRequestDialogOpen] = useState(false);
   const content = copy[language];
 
   const toggleTheme = () => {
@@ -1818,26 +1886,34 @@ export default function Home() {
   return (
     <main data-theme={theme} data-language={language}>
       <div className="page-frame">
-        <Header
+        <SharedHeader
           theme={theme}
           language={language}
           content={content}
           onThemeToggle={toggleTheme}
           onLanguageChange={setLanguage}
+          onRequestOpen={() => setRequestDialogOpen(true)}
         />
-        <Hero content={content} />
+        <Hero content={content} onRequestOpen={() => setRequestDialogOpen(true)} />
       </div>
       <BrandStrip content={content} />
       <div className="page-frame page-frame--content">
-        <ServiceFeature content={content} />
+        <ServiceFeature content={content} onRequestOpen={() => setRequestDialogOpen(true)} />
         <Calculator content={content} />
         <WhyProcare content={content} />
         <ProboxBanner content={content} />
         <Team content={content} />
-        <AppDownload content={content} />
-        <Faq content={content} />
+        <SharedAppDownload content={content} />
+        <SharedFaq content={content} />
       </div>
-      <Footer content={content} />
+      <SharedFooter content={content} />
+      {isRequestDialogOpen ? (
+        <RequestDialogPortal
+          content={content.requestDialog}
+          titleId="request-dialog-title"
+          onClose={() => setRequestDialogOpen(false)}
+        />
+      ) : null}
     </main>
   );
 }

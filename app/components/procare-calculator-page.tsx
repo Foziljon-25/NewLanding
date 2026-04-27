@@ -3,11 +3,29 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
+import {
+  AppDownload as SharedAppDownload,
+  Faq as SharedFaq,
+  Footer as SharedFooter,
+  Header as SharedHeader,
+  MaskIcon
+} from "./procare-layout-sections";
 import { useProcarePreferences, type LanguageCode, type ThemeMode } from "./use-procare-preferences";
+import {
+  getCalculatorOsTypes,
+  getCalculatorPhoneCategories,
+  getCalculatorProblemCategories,
+  isCalculatorApiConfigured,
+  type CalculatorOsTypeDto,
+  type CalculatorPhoneCategoryDto,
+  type CalculatorProblemCategoryDto
+} from "../lib/calculator-api";
 
 const asset = (name: string) => `/assets/procare/${name}`;
 
 type CalculatorVariant = "default" | "selection";
+
+type LoadState = "idle" | "loading" | "ready" | "error";
 
 type Device = {
   id: string;
@@ -55,6 +73,13 @@ type CalculatorContent = {
     problems: string;
     selectedCount: string;
     search: string;
+    loading: string;
+    retry: string;
+    unavailable: string;
+    empty: string;
+    previous: string;
+    chooseCategory: string;
+    osMetaSuffix: string;
   };
   report: {
     number: string;
@@ -84,6 +109,7 @@ type CalculatorContent = {
     offer: string;
     privacy: string;
     address: string;
+    socialsAria: string;
   };
 };
 
@@ -218,7 +244,14 @@ const calculatorCopy: Record<LanguageCode, CalculatorContent> = {
       family: "iPhone oilasi",
       problems: "Muammolarni tanlang",
       selectedCount: "ta tanlangan",
-      search: "Qidirish"
+      search: "Qidirish",
+      loading: "Yuklanmoqda...",
+      retry: "Qayta urinish",
+      unavailable: "Ma'lumotlarni yuklab bo'lmadi",
+      empty: "Ma'lumot topilmadi",
+      previous: "Oldingi bosqich",
+      chooseCategory: "Qurilma/modelni tanlang",
+      osMetaSuffix: "operatsion tizim"
     },
     report: {
       number: "Hisobot #PC-214",
@@ -247,7 +280,8 @@ const calculatorCopy: Record<LanguageCode, CalculatorContent> = {
     footer: {
       offer: "Ommaviy offerta",
       privacy: "Maxfiylik siyosati",
-      address: "Qoratosh ko'chasi, 5B"
+      address: "Qoratosh ko'chasi, 5B",
+      socialsAria: "Ijtimoiy tarmoqlar"
     }
   },
   ru: {
@@ -281,7 +315,14 @@ const calculatorCopy: Record<LanguageCode, CalculatorContent> = {
       family: "Линейка iPhone",
       problems: "Выберите проблемы",
       selectedCount: "выбрано",
-      search: "Поиск"
+      search: "Поиск",
+      loading: "Загрузка...",
+      retry: "Повторить",
+      unavailable: "Не удалось загрузить данные",
+      empty: "Данные не найдены",
+      previous: "Предыдущий шаг",
+      chooseCategory: "Выберите устройство/модель",
+      osMetaSuffix: "операционные системы"
     },
     report: {
       number: "Отчет #PC-214",
@@ -310,7 +351,8 @@ const calculatorCopy: Record<LanguageCode, CalculatorContent> = {
     footer: {
       offer: "Публичная оферта",
       privacy: "Политика конфиденциальности",
-      address: "ул. Каратас, 5B"
+      address: "ул. Каратас, 5B",
+      socialsAria: "Социальные сети"
     }
   },
   en: {
@@ -344,7 +386,14 @@ const calculatorCopy: Record<LanguageCode, CalculatorContent> = {
       family: "iPhone lineup",
       problems: "Choose issues",
       selectedCount: "selected",
-      search: "Search"
+      search: "Search",
+      loading: "Loading...",
+      retry: "Retry",
+      unavailable: "Could not load data",
+      empty: "No data found",
+      previous: "Previous step",
+      chooseCategory: "Choose device/model",
+      osMetaSuffix: "operating systems"
     },
     report: {
       number: "Report #PC-214",
@@ -373,13 +422,232 @@ const calculatorCopy: Record<LanguageCode, CalculatorContent> = {
     footer: {
       offer: "Public offer",
       privacy: "Privacy policy",
-      address: "Karatosh street, 5B"
+      address: "Karatosh street, 5B",
+      socialsAria: "Social networks"
     }
   }
 };
 
+const calculatorFaqCopy = {
+  uz: {
+    faq: {
+      title: "Ko'p so'raladigan savollar",
+      accent: "savollar",
+      items: [
+        {
+          question: "iPhone’ni ta’mirlash qancha vaqt oladi?",
+          subtext: "Ko‘p uchraydigan ta’mirlar odatda shu kunning o‘zida yakunlanadi.",
+          answer:
+            "Odatda ta’mirlash ishlari 30 daqiqadan 2 soatgacha davom etadi. Murakkab muammolar esa to‘liq diagnostikani talab qilishi mumkin."
+        },
+        {
+          question: "Sizlar asl ehtiyot qismlardan foydalanasizlarmi?",
+          subtext: "Har bir detal qurilmaga mosligi va sifat darajasi bo‘yicha tanlanadi.",
+          answer:
+            "Ha, imkon qadar original yoki originalga maksimal yaqin, tekshirilgan sifatdagi ehtiyot qismlar bilan ishlaymiz. Qurilmangiz modeli va ta’mir turiga qarab bir nechta variantni oldindan tushuntirib beramiz."
+        },
+        {
+          question: "Apple mahsulotim ta'mirlangandan so'ng qanday kafolat olishim mumkin?",
+          subtext: "Bajarilgan ish turiga qarab kafolat muddati rasmiy tarzda beriladi.",
+          answer:
+            "Ta’mirdan so‘ng bajarilgan ish va o‘rnatilgan detal turiga qarab kafolat beriladi. Qurilmani topshirayotganda kafolat shartlari, amal qilish muddati va murojaat qilish tartibini aniq ko‘rsatib beramiz."
+        },
+        {
+          question: "Mahsulotimni ta'mirlash uchun qanday yo'l tutishim kerak?",
+          subtext: "Qabul jarayoni sodda: murojaat, diagnostika, tasdiq va ta’mir.",
+          answer:
+            "Servis markazimizga qurilmangiz bilan kelishingiz yoki oldindan bog‘lanib muammo haqida qisqacha ma’lumot qoldirishingiz mumkin. Qurilma qabul qilingach diagnostika o‘tkaziladi, so‘ng narx va muddat tasdiqlanib, ta’mir jarayoni boshlanadi."
+        },
+        {
+          question: "Agar men iPhone'ni o‘zim ta'mirlashga urinib ko‘rsam, bu kafolatga ta'sir qiladimi?",
+          subtext: "Noto‘g‘ri ochish yoki aralashuv ayrim holatlarda keyingi servis jarayoniga ta’sir qiladi.",
+          answer:
+            "Ha, mustaqil ravishda noto‘g‘ri ochish, nomos detal ishlatish yoki ichki qismlarga zarar yetkazish kafolatga ta’sir qilishi mumkin. Shu sababli qurilmaga aralashishdan oldin servis diagnostikasidan o‘tkazish tavsiya etiladi."
+        },
+        {
+          question: "Sizlar faqat iPhone’ni ta'mirlaysizlarmi, yoki boshqa Apple mahsulotlarini ham qabul qilasiz?",
+          subtext: "Servis doiramiz iPhone bilan cheklanmaydi.",
+          answer:
+            "Yo‘q, biz iPhone bilan birga iPad, MacBook, Apple Watch va ayrim boshqa Apple qurilmalarini ham qabul qilamiz. Qurilma turiga qarab diagnostika va ta’mir tartibi alohida belgilanadi."
+        }
+      ]
+    }
+  },
+  ru: {
+    faq: {
+      title: "Часто задаваемые вопросы",
+      accent: "вопросы",
+      items: [
+        {
+          question: "Сколько времени занимает ремонт iPhone?",
+          subtext: "Распространенные виды ремонта обычно завершаются в тот же день.",
+          answer:
+            "Обычно ремонт занимает от 30 минут до 2 часов. Сложные неисправности могут потребовать полной диагностики."
+        },
+        {
+          question: "Вы используете оригинальные запчасти?",
+          subtext: "Каждая деталь подбирается по совместимости и уровню качества.",
+          answer:
+            "Да, по возможности мы используем оригинальные или максимально близкие к оригиналу проверенные запчасти. В зависимости от модели и типа ремонта заранее объясняем доступные варианты."
+        },
+        {
+          question: "Какую гарантию я получу после ремонта Apple-устройства?",
+          subtext: "Срок гарантии зависит от типа выполненной работы.",
+          answer:
+            "После ремонта гарантия предоставляется в зависимости от выполненной работы и установленной детали. При выдаче устройства мы четко объясняем условия, срок действия и порядок обращения."
+        },
+        {
+          question: "Что нужно сделать, чтобы сдать устройство в ремонт?",
+          subtext: "Процесс простой: обращение, диагностика, согласование и ремонт.",
+          answer:
+            "Вы можете прийти в сервисный центр с устройством или заранее связаться с нами и кратко описать проблему. После приема проводится диагностика, согласуются цена и сроки, затем начинается ремонт."
+        },
+        {
+          question: "Повлияет ли самостоятельный ремонт iPhone на гарантию?",
+          subtext: "Неправильное вскрытие или вмешательство может повлиять на дальнейшее обслуживание.",
+          answer:
+            "Да, самостоятельное вскрытие, использование неподходящих деталей или повреждение внутренних компонентов может повлиять на гарантию. Поэтому перед вмешательством рекомендуем пройти сервисную диагностику."
+        },
+        {
+          question: "Вы ремонтируете только iPhone или принимаете другие устройства Apple?",
+          subtext: "Наш сервис не ограничивается iPhone.",
+          answer:
+            "Нет, кроме iPhone мы также принимаем iPad, MacBook, Apple Watch и некоторые другие устройства Apple. Порядок диагностики и ремонта зависит от типа устройства."
+        }
+      ]
+    }
+  },
+  en: {
+    faq: {
+      title: "Frequently asked questions",
+      accent: "questions",
+      items: [
+        {
+          question: "How long does iPhone repair take?",
+          subtext: "Common repairs are usually completed the same day.",
+          answer:
+            "Repair usually takes from 30 minutes to 2 hours. More complex issues may require full diagnostics."
+        },
+        {
+          question: "Do you use genuine spare parts?",
+          subtext: "Each part is selected for device compatibility and quality level.",
+          answer:
+            "Yes. Whenever possible, we use original or carefully verified parts that are as close to original quality as possible. Depending on the model and repair type, we explain the available options in advance."
+        },
+        {
+          question: "What warranty do I get after my Apple product is repaired?",
+          subtext: "The warranty period is provided officially based on the work performed.",
+          answer:
+            "After repair, the warranty depends on the completed work and the installed part. When the device is returned, we clearly explain the warranty terms, duration and support process."
+        },
+        {
+          question: "What should I do to repair my product?",
+          subtext: "The intake process is simple: request, diagnostics, approval and repair.",
+          answer:
+            "You can visit our service center with your device or contact us in advance with a short description of the issue. After intake, diagnostics are performed, the price and timing are approved, and repair begins."
+        },
+        {
+          question: "Will trying to repair my iPhone myself affect the warranty?",
+          subtext: "Incorrect opening or intervention can affect further service in some cases.",
+          answer:
+            "Yes. Opening the device incorrectly, using incompatible parts or damaging internal components can affect the warranty. We recommend service diagnostics before any intervention."
+        },
+        {
+          question: "Do you only repair iPhones, or do you accept other Apple products too?",
+          subtext: "Our service scope is not limited to iPhone.",
+          answer:
+            "No, in addition to iPhone we also accept iPad, MacBook, Apple Watch and some other Apple devices. Diagnostics and repair flow are defined separately based on the device type."
+        }
+      ]
+    }
+  }
+} satisfies Record<LanguageCode, { faq: { title: string; accent: string; items: Array<{ question: string; subtext: string; answer: string }> } }>;
+
 function formatPrice(price: number) {
   return `${price.toLocaleString("ru-RU")} so'm`;
+}
+
+function getLocalizedName(
+  item: Pick<CalculatorOsTypeDto | CalculatorPhoneCategoryDto | CalculatorProblemCategoryDto, "name_uz" | "name_ru" | "name_en">,
+  language: LanguageCode
+) {
+  return item[`name_${language}`] || item.name_uz || item.name_ru || item.name_en;
+}
+
+function parseApiPrice(value: string) {
+  const parsedPrice = Number.parseFloat(value);
+
+  return Number.isFinite(parsedPrice) ? Math.round(parsedPrice) : 0;
+}
+
+function formatDuration(minutes: number, language: LanguageCode) {
+  if (!minutes) {
+    return "";
+  }
+
+  if (language === "ru") {
+    return `${minutes} минут`;
+  }
+
+  if (language === "en") {
+    return `${minutes} minutes`;
+  }
+
+  return `${minutes} minut`;
+}
+
+function getOsIcon(name: string): Device["icon"] {
+  const normalizedName = name.toLowerCase();
+
+  if (normalizedName.includes("watch")) {
+    return "watch";
+  }
+
+  if (normalizedName.includes("ipad") || normalizedName.includes("tablet")) {
+    return "tablet";
+  }
+
+  if (normalizedName.includes("mac") || normalizedName.includes("laptop")) {
+    return "laptop";
+  }
+
+  return "phone";
+}
+
+function mapOsToDevice(osType: CalculatorOsTypeDto, language: LanguageCode): Device {
+  const name = getLocalizedName(osType, language);
+
+  return {
+    id: osType.id,
+    title: {
+      uz: getLocalizedName(osType, "uz"),
+      ru: getLocalizedName(osType, "ru"),
+      en: getLocalizedName(osType, "en")
+    },
+    description: {
+      uz: "Operatsion tizim",
+      ru: "Операционная система",
+      en: "Operating system"
+    },
+    icon: getOsIcon(name)
+  };
+}
+
+function mapProblemToService(problem: CalculatorProblemCategoryDto): ServiceProblem {
+  return {
+    id: problem.id,
+    title: {
+      uz: getLocalizedName(problem, "uz"),
+      ru: getLocalizedName(problem, "ru"),
+      en: getLocalizedName(problem, "en")
+    },
+    price: parseApiPrice(problem.cost || problem.price),
+    duration: {
+      uz: formatDuration(problem.estimated_minutes, "uz"),
+      ru: formatDuration(problem.estimated_minutes, "ru"),
+      en: formatDuration(problem.estimated_minutes, "en")
+    }
+  };
 }
 
 function LanguageFlag({ src }: { src: string }) {
@@ -441,23 +709,16 @@ function HeaderSunIcon() {
 }
 
 function DeviceIcon({ type }: { type: Device["icon"] }) {
+  if (type === "phone") {
+    return <MaskIcon src={asset("calc-device-phone.svg")} width={17.5} height={21.5} color="currentColor" />;
+  }
+
   if (type === "tablet") {
-    return (
-      <svg viewBox="0 0 24 24" aria-hidden="true">
-        <rect x="6" y="3" width="12" height="18" rx="2.5" />
-        <path d="M11.4 18h1.2" />
-      </svg>
-    );
+    return <MaskIcon src={asset("calc-device-tablet.svg")} width={16} height={20} color="currentColor" />;
   }
 
   if (type === "watch") {
-    return (
-      <svg viewBox="0 0 24 24" aria-hidden="true">
-        <path d="M9 5.2 9.8 2h4.4l.8 3.2" />
-        <rect x="8" y="5" width="8" height="14" rx="4" />
-        <path d="m9 18.8.8 3.2h4.4l.8-3.2M11 9h2" />
-      </svg>
-    );
+    return <MaskIcon src={asset("calc-device-watch.svg")} width={12} height={20} color="currentColor" />;
   }
 
   if (type === "laptop") {
@@ -487,20 +748,11 @@ function DeviceIcon({ type }: { type: Device["icon"] }) {
     );
   }
 
-  return (
-    <svg viewBox="0 0 24 24" aria-hidden="true">
-      <rect x="7" y="3" width="10" height="18" rx="2.5" />
-      <path d="M11 6h2" />
-    </svg>
-  );
+  return <MaskIcon src={asset("calc-device-phone.svg")} width={17.5} height={21.5} color="currentColor" />;
 }
 
 function CheckIcon() {
-  return (
-    <svg viewBox="0 0 16 16" aria-hidden="true">
-      <path d="m3.5 8.2 2.6 2.6 6.4-6.6" />
-    </svg>
-  );
+  return <MaskIcon src={asset("calc-checkmark.svg")} width={16} height={16} color="currentColor" />;
 }
 
 function SearchIcon() {
@@ -521,11 +773,11 @@ function ChevronIcon() {
 }
 
 function ArrowLeftIcon() {
-  return (
-    <svg viewBox="0 0 24 24" aria-hidden="true">
-      <path d="M15 6 9 12l6 6" />
-    </svg>
-  );
+  return <MaskIcon src={asset("calc-back-icon.svg")} width={20} height={20} color="currentColor" />;
+}
+
+function ReportMarkIcon() {
+  return <MaskIcon src={asset("calc-report-mark.svg")} width={16} height={16} color="currentColor" />;
 }
 
 function ProcareCalculatorHeader({
@@ -702,21 +954,30 @@ function CalculatorBreadcrumb({ content }: { content: CalculatorContent }) {
 }
 
 function DeviceSelector({
+  devices,
   activeDevice,
   expanded,
   language,
   content,
+  status,
+  error,
   onSelect,
+  onRetry,
   onToggleExpanded
 }: {
+  devices: Device[];
   activeDevice: string;
   expanded: boolean;
   language: LanguageCode;
   content: CalculatorContent;
+  status: LoadState;
+  error: string | null;
   onSelect: (id: string) => void;
+  onRetry: () => void;
   onToggleExpanded: () => void;
 }) {
   const visibleDevices = expanded ? devices : devices.slice(0, 4);
+  const deviceMeta = `${devices.length} ${content.sections.osMetaSuffix}`;
 
   return (
     <section className={`calc-card calc-card--device ${expanded ? "is-expanded" : ""}`}>
@@ -729,34 +990,50 @@ function DeviceSelector({
       <div className="calc-inner-panel">
         <div className="calc-section-title">
           <h2>{content.sections.device}</h2>
-          <span>{content.sections.deviceMeta}</span>
+          <span>{deviceMeta}</span>
         </div>
-        <div className="calc-device-grid">
-          {visibleDevices.map((device) => {
-            const isSelected = device.id === activeDevice;
+        {status === "loading" ? <p className="calc-inline-state">{content.sections.loading}</p> : null}
+        {status === "error" ? (
+          <div className="calc-inline-state calc-inline-state--error">
+            <span>{error || content.sections.unavailable}</span>
+            <button type="button" onClick={onRetry}>
+              {content.sections.retry}
+            </button>
+          </div>
+        ) : null}
+        {status === "ready" && devices.length === 0 ? <p className="calc-inline-state">{content.sections.empty}</p> : null}
+        {devices.length > 0 ? (
+          <>
+            <div className="calc-device-grid">
+              {visibleDevices.map((device) => {
+                const isSelected = device.id === activeDevice;
 
-            return (
-              <button
-                className={`calc-option calc-device-option ${isSelected ? "is-selected" : ""}`}
-                key={device.id}
-                type="button"
-                onClick={() => onSelect(device.id)}
-              >
-                <span className="calc-option-icon">
-                  <DeviceIcon type={device.icon} />
-                </span>
-                <span className="calc-option-copy">
-                  <strong>{device.title[language]}</strong>
-                  <small>{device.description[language]}</small>
-                </span>
-                <span className="calc-choice-state">{isSelected ? <CheckIcon /> : null}</span>
+                return (
+                  <button
+                    className={`calc-option calc-device-option ${isSelected ? "is-selected" : ""}`}
+                    key={device.id}
+                    type="button"
+                    onClick={() => onSelect(device.id)}
+                  >
+                    <span className="calc-option-icon">
+                      <DeviceIcon type={device.icon} />
+                    </span>
+                    <span className="calc-option-copy">
+                      <strong>{device.title[language]}</strong>
+                      <small>{device.description[language]}</small>
+                    </span>
+                    <span className="calc-choice-state">{isSelected ? <CheckIcon /> : null}</span>
+                  </button>
+                );
+              })}
+            </div>
+            {devices.length > 4 ? (
+              <button className="calc-more-button" type="button" onClick={onToggleExpanded}>
+                {expanded ? content.sections.collapse : content.sections.expand}
               </button>
-            );
-          })}
-        </div>
-        <button className="calc-more-button" type="button" onClick={onToggleExpanded}>
-          {expanded ? content.sections.collapse : content.sections.expand}
-        </button>
+            ) : null}
+          </>
+        ) : null}
       </div>
     </section>
   );
@@ -765,28 +1042,42 @@ function DeviceSelector({
 function ModelSelector({
   language,
   model,
+  categories,
+  categoryTrail,
+  status,
+  error,
   isOpen,
   content,
-  onModelChange,
+  onCategorySelect,
+  onCategoryBack,
+  onRetry,
   onToggleOpen
 }: {
   language: LanguageCode;
   model: string;
+  categories: CalculatorPhoneCategoryDto[];
+  categoryTrail: CalculatorPhoneCategoryDto[];
+  status: LoadState;
+  error: string | null;
   isOpen: boolean;
   content: CalculatorContent;
-  onModelChange: (model: string) => void;
+  onCategorySelect: (category: CalculatorPhoneCategoryDto) => void;
+  onCategoryBack: () => void;
+  onRetry: () => void;
   onToggleOpen: () => void;
 }) {
-  const languageModels = models[language];
+  const familyLabel = categoryTrail.length
+    ? categoryTrail.map((category) => getLocalizedName(category, language)).join(" / ")
+    : content.sections.chooseCategory;
 
   return (
     <section className="calc-card calc-card--model">
       <div className="calc-section-title">
         <h2>{content.sections.model}</h2>
-        <span>{content.sections.family}</span>
+        <span>{familyLabel}</span>
       </div>
-      <button className="calc-select" type="button" aria-expanded={isOpen} onClick={onToggleOpen}>
-        <span>{model}</span>
+      <button className="calc-select" type="button" aria-expanded={isOpen} disabled={status === "loading"} onClick={onToggleOpen}>
+        <span>{status === "loading" ? content.sections.loading : model || content.sections.chooseCategory}</span>
         <ChevronIcon />
       </button>
       {isOpen ? (
@@ -795,18 +1086,31 @@ function ModelSelector({
             <SearchIcon />
             <span>{content.sections.search}</span>
           </div>
+          {categoryTrail.length > 0 ? (
+            <button className="calc-dropdown-back" type="button" onClick={onCategoryBack}>
+              <ArrowLeftIcon />
+              <span>{content.sections.previous}</span>
+            </button>
+          ) : null}
           <div className="calc-dropdown-list">
-            {languageModels.map((nextModel) => (
+            {status === "loading" ? <p className="calc-inline-state">{content.sections.loading}</p> : null}
+            {status === "error" ? (
+              <div className="calc-inline-state calc-inline-state--error">
+                <span>{error || content.sections.unavailable}</span>
+                <button type="button" onClick={onRetry}>
+                  {content.sections.retry}
+                </button>
+              </div>
+            ) : null}
+            {status === "ready" && categories.length === 0 ? <p className="calc-inline-state">{content.sections.empty}</p> : null}
+            {categories.map((category) => (
               <button
-                className={nextModel === model ? "is-active" : ""}
-                key={nextModel}
+                className={model === getLocalizedName(category, language) ? "is-active" : ""}
+                key={category.id}
                 type="button"
-                onClick={() => {
-                  onModelChange(nextModel);
-                  onToggleOpen();
-                }}
+                onClick={() => onCategorySelect(category)}
               >
-                {nextModel}
+                {getLocalizedName(category, language)}
               </button>
             ))}
           </div>
@@ -819,13 +1123,21 @@ function ModelSelector({
 function ProblemsSelector({
   language,
   content,
+  problems,
+  status,
+  error,
   selectedProblems,
-  onToggleProblem
+  onToggleProblem,
+  onRetry
 }: {
   language: LanguageCode;
   content: CalculatorContent;
+  problems: ServiceProblem[];
+  status: LoadState;
+  error: string | null;
   selectedProblems: string[];
   onToggleProblem: (id: string) => void;
+  onRetry: () => void;
 }) {
   return (
     <section className="calc-card calc-card--problems">
@@ -835,6 +1147,16 @@ function ProblemsSelector({
           <b>{selectedProblems.length}</b> {content.sections.selectedCount}
         </span>
       </div>
+      {status === "loading" ? <p className="calc-inline-state">{content.sections.loading}</p> : null}
+      {status === "error" ? (
+        <div className="calc-inline-state calc-inline-state--error">
+          <span>{error || content.sections.unavailable}</span>
+          <button type="button" onClick={onRetry}>
+            {content.sections.retry}
+          </button>
+        </div>
+      ) : null}
+      {status === "ready" && problems.length === 0 ? <p className="calc-inline-state">{content.sections.empty}</p> : null}
       <div className="calc-problem-grid">
         {problems.map((problem) => {
           const isSelected = selectedProblems.includes(problem.id);
@@ -889,7 +1211,7 @@ function ReportContent({
           <DeviceIcon type="phone" />
         </span>
         <span>
-          <strong>{model}</strong>
+          <strong>{model || content.sections.chooseCategory}</strong>
           <small>{content.report.deviceHint}</small>
         </span>
       </div>
@@ -902,7 +1224,7 @@ function ReportContent({
           selectedProblemItems.map((problem) => (
             <div className="calc-report-service" key={problem.id}>
               <span className="calc-service-mark">
-                <CheckIcon />
+                <ReportMarkIcon />
               </span>
               <span>
                 <strong>{problem.title[language]}</strong>
@@ -1008,17 +1330,149 @@ export default function ProcareCalculatorPage({ variant = "default" }: ProcareCa
   const { theme, setTheme, language, setLanguage } = useProcarePreferences();
   const [isExpanded, setExpanded] = useState(variant === "selection");
   const [isDropdownOpen, setDropdownOpen] = useState(variant === "selection");
-  const [activeDevice, setActiveDevice] = useState("iphone");
-  const [selectedModel, setSelectedModel] = useState(models.uz[0]);
-  const [selectedProblems, setSelectedProblems] = useState<string[]>(["display"]);
+  const [osTypes, setOsTypes] = useState<CalculatorOsTypeDto[]>([]);
+  const [osState, setOsState] = useState<LoadState>("idle");
+  const [osError, setOsError] = useState<string | null>(null);
+  const [activeDevice, setActiveDevice] = useState("");
+  const [categoryOptions, setCategoryOptions] = useState<CalculatorPhoneCategoryDto[]>([]);
+  const [categoryTrail, setCategoryTrail] = useState<CalculatorPhoneCategoryDto[]>([]);
+  const [selectedCategory, setSelectedCategory] = useState<CalculatorPhoneCategoryDto | null>(null);
+  const [categoryState, setCategoryState] = useState<LoadState>("idle");
+  const [categoryError, setCategoryError] = useState<string | null>(null);
+  const [problemOptions, setProblemOptions] = useState<ServiceProblem[]>([]);
+  const [problemState, setProblemState] = useState<LoadState>("idle");
+  const [problemError, setProblemError] = useState<string | null>(null);
+  const [selectedProblems, setSelectedProblems] = useState<string[]>([]);
   const [isMobileReportOpen, setMobileReportOpen] = useState(false);
+  const [reloadToken, setReloadToken] = useState(0);
   const content = calculatorCopy[language];
-  const selectedProblemItems = problems.filter((problem) => selectedProblems.includes(problem.id));
+  const faqContent = calculatorFaqCopy[language];
+  const deviceOptions = osTypes.map((osType) => mapOsToDevice(osType, language));
+  const selectedModel = selectedCategory
+    ? getLocalizedName(selectedCategory, language)
+    : categoryTrail.length
+      ? getLocalizedName(categoryTrail[categoryTrail.length - 1], language)
+      : "";
+  const selectedProblemItems = problemOptions.filter((problem) => selectedProblems.includes(problem.id));
   const total = selectedProblemItems.reduce((sum, problem) => sum + problem.price, 0);
 
   useEffect(() => {
-    setSelectedModel((current) => (models[language].includes(current) ? current : models[language][0]));
-  }, [language]);
+    if (!isCalculatorApiConfigured) {
+      setOsTypes([]);
+      setActiveDevice("");
+      setOsState("error");
+      setOsError("NEXT_PUBLIC_CALCULATOR_API_BASE_URL qiymati sozlanmagan.");
+      return;
+    }
+
+    const controller = new AbortController();
+
+    async function loadOsTypes() {
+      setOsState("loading");
+      setOsError(null);
+
+      try {
+        const nextOsTypes = await getCalculatorOsTypes(controller.signal);
+
+        setOsTypes(nextOsTypes);
+        setActiveDevice((current) => (nextOsTypes.some((osType) => osType.id === current) ? current : nextOsTypes[0]?.id ?? ""));
+        setOsState("ready");
+      } catch (error) {
+        if (controller.signal.aborted) {
+          return;
+        }
+
+        setOsTypes([]);
+        setActiveDevice("");
+        setOsState("error");
+        setOsError(error instanceof Error ? error.message : content.sections.unavailable);
+      }
+    }
+
+    loadOsTypes();
+
+    return () => controller.abort();
+  }, [content.sections.unavailable, reloadToken]);
+
+  useEffect(() => {
+    setCategoryTrail([]);
+    setSelectedCategory(null);
+    setSelectedProblems([]);
+    setProblemOptions([]);
+  }, [activeDevice]);
+
+  useEffect(() => {
+    if (!activeDevice || osState !== "ready") {
+      setCategoryOptions([]);
+      setCategoryState("idle");
+      return;
+    }
+
+    const controller = new AbortController();
+    const parentCategory = categoryTrail[categoryTrail.length - 1];
+
+    async function loadCategories() {
+      setCategoryState("loading");
+      setCategoryError(null);
+
+      try {
+        const nextCategories = await getCalculatorPhoneCategories(activeDevice, parentCategory?.id, controller.signal);
+
+        setCategoryOptions(nextCategories);
+        setCategoryState("ready");
+      } catch (error) {
+        if (controller.signal.aborted) {
+          return;
+        }
+
+        setCategoryOptions([]);
+        setCategoryState("error");
+        setCategoryError(error instanceof Error ? error.message : content.sections.unavailable);
+      }
+    }
+
+    loadCategories();
+
+    return () => controller.abort();
+  }, [activeDevice, categoryTrail, content.sections.unavailable, osState, reloadToken]);
+
+  useEffect(() => {
+    if (!selectedCategory?.has_problems) {
+      setProblemOptions([]);
+      setSelectedProblems([]);
+      setProblemState(selectedCategory ? "ready" : "idle");
+      return;
+    }
+
+    const controller = new AbortController();
+    const category = selectedCategory;
+
+    async function loadProblems() {
+      setProblemState("loading");
+      setProblemError(null);
+
+      try {
+        const nextProblems = (await getCalculatorProblemCategories(category.id, controller.signal)).map(mapProblemToService);
+
+        setProblemOptions(nextProblems);
+        setSelectedProblems(nextProblems[0] ? [nextProblems[0].id] : []);
+        setProblemState("ready");
+      } catch (error) {
+        if (controller.signal.aborted) {
+          return;
+        }
+
+        setProblemOptions([]);
+        setSelectedProblems([]);
+        setProblemState("error");
+        setProblemError(error instanceof Error ? error.message : content.sections.unavailable);
+      }
+    }
+
+    loadProblems();
+
+    return () => controller.abort();
+  }, [content.sections.unavailable, reloadToken, selectedCategory]);
 
   useEffect(() => {
     if (!isMobileReportOpen) {
@@ -1037,6 +1491,36 @@ export default function ProcareCalculatorPage({ variant = "default" }: ProcareCa
     setTheme((currentTheme) => (currentTheme === "dark" ? "light" : "dark"));
   };
 
+  const retryApi = () => {
+    setReloadToken((current) => current + 1);
+  };
+
+  const handleDeviceSelect = (id: string) => {
+    setActiveDevice(id);
+    setDropdownOpen(true);
+  };
+
+  const handleCategorySelect = (category: CalculatorPhoneCategoryDto) => {
+    if (category.has_children) {
+      setCategoryTrail((current) => [...current, category]);
+      setSelectedCategory(null);
+      setProblemOptions([]);
+      setSelectedProblems([]);
+      setDropdownOpen(true);
+      return;
+    }
+
+    setSelectedCategory(category);
+    setDropdownOpen(false);
+  };
+
+  const handleCategoryBack = () => {
+    setCategoryTrail((current) => current.slice(0, -1));
+    setSelectedCategory(null);
+    setProblemOptions([]);
+    setSelectedProblems([]);
+  };
+
   const handleToggleProblem = (id: string) => {
     setSelectedProblems((current) => {
       if (current.includes(id)) {
@@ -1049,7 +1533,7 @@ export default function ProcareCalculatorPage({ variant = "default" }: ProcareCa
 
   return (
     <>
-      <ProcareCalculatorHeader
+      <SharedHeader
         theme={theme}
         language={language}
         content={content}
@@ -1062,26 +1546,40 @@ export default function ProcareCalculatorPage({ variant = "default" }: ProcareCa
           <div className="calc-workspace">
             <div className="calc-form-column">
               <DeviceSelector
+                devices={deviceOptions}
                 activeDevice={activeDevice}
                 expanded={isExpanded}
                 language={language}
                 content={content}
-                onSelect={setActiveDevice}
+                status={osState}
+                error={osError}
+                onSelect={handleDeviceSelect}
+                onRetry={retryApi}
                 onToggleExpanded={() => setExpanded((current) => !current)}
               />
               <ModelSelector
                 language={language}
                 isOpen={isDropdownOpen}
                 model={selectedModel}
+                categories={categoryOptions}
+                categoryTrail={categoryTrail}
+                status={categoryState}
+                error={categoryError}
                 content={content}
-                onModelChange={setSelectedModel}
+                onCategorySelect={handleCategorySelect}
+                onCategoryBack={handleCategoryBack}
+                onRetry={retryApi}
                 onToggleOpen={() => setDropdownOpen((current) => !current)}
               />
               <ProblemsSelector
                 language={language}
                 content={content}
+                problems={problemOptions}
+                status={problemState}
+                error={problemError}
                 selectedProblems={selectedProblems}
                 onToggleProblem={handleToggleProblem}
+                onRetry={retryApi}
               />
             </div>
             <div className="calc-side-column">
@@ -1097,9 +1595,21 @@ export default function ProcareCalculatorPage({ variant = "default" }: ProcareCa
               <PromoCodeCard content={content} />
             </div>
           </div>
-          <CalculatorAppPromo content={content} />
         </div>
-        <CalculatorFooter content={content} />
+        <div className="page-frame page-frame--content calc-shared-sections">
+          <SharedAppDownload
+            content={{
+              app: {
+                appleTitle: content.app.appStore,
+                playTitle: content.app.playStore,
+                qrText: content.app.qrText,
+                note: content.app.note
+              }
+            }}
+          />
+          <SharedFaq content={faqContent} />
+        </div>
+        <SharedFooter content={content} />
       </main>
 
       <button
