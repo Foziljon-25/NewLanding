@@ -438,6 +438,71 @@ main > .page-frame:first-child {
   box-shadow: 0 28px 80px rgba(15, 23, 42, 0.2);
 }
 
+.request-success-dialog {
+  position: relative;
+  display: flex;
+  width: min(534px, calc(100vw - 32px));
+  max-height: calc(100dvh - 32px);
+  flex-direction: column;
+  align-items: center;
+  gap: 24px;
+  padding: 36px 36px 56px;
+  overflow: hidden;
+  border-radius: 36px;
+  background: var(--white);
+}
+
+.request-success-illustration {
+  position: relative;
+  width: 183px;
+  height: 183px;
+  flex: 0 0 auto;
+  overflow: hidden;
+}
+
+.request-success-illustration-image {
+  position: absolute;
+  top: 0;
+  left: 8.19%;
+  width: 192.65%;
+  height: 100%;
+  max-width: none;
+}
+
+.request-success-copy {
+  display: flex;
+  width: 100%;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  text-align: center;
+}
+
+.request-success-copy h2 {
+  margin: 0;
+  color: var(--slate-800);
+  font-size: 36px;
+  font-weight: 600;
+  line-height: 48px;
+}
+
+.request-success-copy p {
+  width: 100%;
+  margin: 0;
+  color: var(--slate-500);
+  font-size: 20px;
+  font-weight: 300;
+  line-height: 28px;
+}
+
+.request-success-message {
+  display: block;
+}
+
+.request-success-message--mobile {
+  display: none;
+}
+
 .request-dialog-heading h2 {
   margin: 0;
   color: var(--slate-800);
@@ -2061,6 +2126,40 @@ main > .page-frame:first-child {
     gap: 24px;
     padding: 24px;
     border-radius: 24px;
+  }
+
+  .request-success-dialog {
+    width: min(358px, 100%);
+    gap: 12px;
+    padding: 24px 24px 36px;
+    border-radius: 36px;
+  }
+
+  .request-success-illustration {
+    width: 112px;
+    height: 112px;
+  }
+
+  .request-success-copy {
+    gap: 8px;
+  }
+
+  .request-success-copy h2 {
+    font-size: 20px;
+    line-height: 28px;
+  }
+
+  .request-success-copy p {
+    font-size: 16px;
+    line-height: 22px;
+  }
+
+  .request-success-message--desktop {
+    display: none;
+  }
+
+  .request-success-message--mobile {
+    display: block;
   }
 
   .request-dialog-close {

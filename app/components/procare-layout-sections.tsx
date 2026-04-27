@@ -65,6 +65,9 @@ export type RequestDialogContent = {
   cancel: string;
   submit: string;
   submitting: string;
+  successTitle: string;
+  successMessage: string;
+  successMessageMobile: string;
   success: string;
   error: string;
   requiredError: string;
@@ -305,6 +308,16 @@ export function RequestDialogPortal({
     };
   }, [onClose]);
 
+  useEffect(() => {
+    if (status !== "success") {
+      return;
+    }
+
+    const closeTimer = window.setTimeout(onClose, 3500);
+
+    return () => window.clearTimeout(closeTimer);
+  }, [onClose, status]);
+
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
 
@@ -346,6 +359,40 @@ export function RequestDialogPortal({
 
   if (!isMounted) {
     return null;
+  }
+
+  if (status === "success") {
+    return createPortal(
+      <div className="request-modal-backdrop request-modal-backdrop--success" role="presentation" onClick={onClose}>
+        <div
+          aria-modal="true"
+          className="request-success-dialog"
+          role="dialog"
+          aria-labelledby={`${titleId}-success`}
+          data-node-id="3151:44214"
+          onClick={(event) => event.stopPropagation()}
+        >
+          <div className="request-success-illustration" data-node-id="3151:44215">
+            <Image
+              className="request-success-illustration-image"
+              src={asset("request-success-confetti.png")}
+              alt=""
+              width={1834}
+              height={952}
+              priority
+            />
+          </div>
+          <div className="request-success-copy" aria-live="polite">
+            <h2 id={`${titleId}-success`}>{content.successTitle}</h2>
+            <p>
+              <span className="request-success-message request-success-message--desktop">{content.successMessage}</span>
+              <span className="request-success-message request-success-message--mobile">{content.successMessageMobile}</span>
+            </p>
+          </div>
+        </div>
+      </div>,
+      document.body
+    );
   }
 
   return createPortal(
