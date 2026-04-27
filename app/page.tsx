@@ -58,6 +58,89 @@ type FooterSocialLink = {
 };
 
 type ThemeMode = "light" | "dark";
+type LanguageCode = "uz" | "ru" | "en";
+
+type LandingCopy = {
+  header: {
+    calculator: string;
+    about: string;
+    request: string;
+    languageAria: string;
+    logoAria: string;
+    navAria: string;
+    contactAria: string;
+    themeLight: string;
+    themeDark: string;
+  };
+  languageDialogTitle: string;
+  hero: {
+    beforeAccent: string;
+    accent: string;
+    afterAccent: string;
+    subtitle: string;
+    calculator: string;
+    contact: string;
+    scroll: string;
+  };
+  brandTitle: string;
+  serviceTabs: ServiceTab[];
+  servicesAria: string;
+  serviceMediaAria: string;
+  calculator: {
+    imageAlt: string;
+    qualityTitle: string;
+    qualityText: string;
+    speedTitle: string;
+    speedText: string;
+    titleBeforeAccent: string;
+    accent: string;
+    description: string;
+    benefits: typeof calculatorBenefits;
+    cta: string;
+  };
+  why: {
+    title: string;
+    accent: string;
+    subtitle: string;
+    aria: string;
+    items: WhyItem[];
+  };
+  probox: {
+    titleBeforeAccent: string;
+    accent: string;
+    titleAfterAccent: string;
+    cta: string;
+    imageAlt: string;
+    noteLeftTitle: string;
+    noteLeftText: string;
+    noteRightTitle: string;
+    noteRightText: string;
+  };
+  team: {
+    title: string;
+    accent: string;
+    subtitle: string;
+    aria: string;
+    roles: string[];
+  };
+  app: {
+    appleTitle: string;
+    playTitle: string;
+    qrText: string;
+    note: string;
+  };
+  faq: {
+    title: string;
+    accent: string;
+    items: FaqItem[];
+  };
+  footer: {
+    offer: string;
+    privacy: string;
+    address: string;
+    socialsAria: string;
+  };
+};
 
 const partnerLogos: PartnerLogo[] = [
   { src: asset("brand-xiaomi.png"), alt: "Xiaomi", width: 110, height: 56 },
@@ -285,6 +368,530 @@ const footerSocialLinks: FooterSocialLink[] = [
   { label: "Facebook", icon: asset("footer-facebook.svg"), width: 11, height: 20, defaultColor: "#ffffff" }
 ];
 
+const languageOptions: Array<{
+  code: LanguageCode;
+  shortLabel: string;
+  labels: Record<LanguageCode, string>;
+  flagSrc: string;
+}> = [
+  { code: "uz", shortLabel: "O'zb", labels: { uz: "O'zbekcha", ru: "Узбекский", en: "Uzbek" }, flagSrc: asset("language-flag-uz.svg") },
+  { code: "ru", shortLabel: "Рус", labels: { uz: "Ruscha", ru: "Русский", en: "Russian" }, flagSrc: asset("language-flag-ru.svg") },
+  { code: "en", shortLabel: "Eng", labels: { uz: "Inglizcha", ru: "Английский", en: "English" }, flagSrc: asset("language-flag-en.svg") }
+];
+
+const copy: Record<LanguageCode, LandingCopy> = {
+  uz: {
+    header: {
+      calculator: "Kalkulyator",
+      about: "Biz haqimizda",
+      request: "Ariza qoldirish",
+      languageAria: "Tilni tanlash",
+      logoAria: "Procare bosh sahifasi",
+      navAria: "Asosiy navigatsiya",
+      contactAria: "Murojaat qilish",
+      themeLight: "Light mode yoqish",
+      themeDark: "Dark mode yoqish"
+    },
+    languageDialogTitle: "Ilova tili",
+    hero: {
+      beforeAccent: "Professional ",
+      accent: "servis",
+      afterAccent: " markazi",
+      subtitle:
+        "Sizning qurilmalaringiz uchun ishonchli va sifatli ta'mirlash xizmatlari. Biz bilan qurilmalaringiz ishonchli qo'llarda.",
+      calculator: "Kalkulyator",
+      contact: "Murojaat qilish",
+      scroll: "Scroll qiling"
+    },
+    brandTitle: "Bizning xizmatlarimiz",
+    serviceTabs,
+    servicesAria: "Xizmat yo'nalishlari",
+    serviceMediaAria: "Ta'mirlash jarayoni",
+    calculator: {
+      imageAlt: "Procare ta'mirlash kalkulyatori",
+      qualityTitle: "Sifat kafolati!",
+      qualityText: "Har bir qurilma uchun bir yillik kafolat beramiz!",
+      speedTitle: "Tezkor ta'mirlash",
+      speedText: "Har bir qurilma tez va sifatli ta'mirlab beriladi",
+      titleBeforeAccent: "Ta'mirlash narxini ",
+      accent: "hisoblang",
+      description:
+        "Qurilmangiz ta'mirlash narxini bilish uchun kalkulyatorimizdan foydalaning. Aniq narxni bir necha soniyada bilib oling.",
+      benefits: calculatorBenefits,
+      cta: "Narxni hisoblash"
+    },
+    why: {
+      title: "Nima uchun Procare?",
+      accent: "Procare?",
+      subtitle: "Bizning mijozlarimiz tanlashimizning asosiy sabablari",
+      aria: "Procare afzalliklari",
+      items: whyItems
+    },
+    probox: {
+      titleBeforeAccent: "Atiga ",
+      accent: "1 000 000 so'm",
+      titleAfterAccent: " boshlang'ich to'lov bilan Iphone 17 ga ega bo'ling",
+      cta: "Probox'ga o'tish",
+      imageAlt: "Probox iPhone 17 taklifi",
+      noteLeftTitle: "24 soat ichida",
+      noteLeftText: "Ariza ko'rib chiqiladi va operator bog'lanadi",
+      noteRightTitle: "Rasmiy hujjatlar",
+      noteRightText: "Har bir qurilma tekshiruv va hujjatlar bilan topshiriladi"
+    },
+    team: {
+      title: "Bizning jamoamiz!",
+      accent: "jamoamiz!",
+      subtitle: "Mutaxassislarimiz qurilmangizga ehtiyotkorlik bilan yondashadi",
+      aria: "Jamoa a'zolari",
+      roles: ["Ekspert", "Mutaxassis", "Pro", "Mutaxassis"]
+    },
+    app: {
+      appleTitle: "App Store QR-kodi",
+      playTitle: "Play Market QR-kodi",
+      qrText: "Hoziroq buyurtmani boshlang",
+      note: "Barcha huquqlar himoyalangan va yuklab olib xavfsizligi ta'minlangan"
+    },
+    faq: {
+      title: "Ko'p so'raladigan savollar",
+      accent: "savollar",
+      items: faqItems
+    },
+    footer: {
+      offer: "Ommaviy offerta",
+      privacy: "Maxfiylik siyosati",
+      address: "Qoratosh ko'chasi, 5B",
+      socialsAria: "Ijtimoiy tarmoqlar"
+    }
+  },
+  ru: {
+    header: {
+      calculator: "Калькулятор",
+      about: "О нас",
+      request: "Оставить заявку",
+      languageAria: "Выбрать язык",
+      logoAria: "Главная Procare",
+      navAria: "Основная навигация",
+      contactAria: "Связаться",
+      themeLight: "Включить светлую тему",
+      themeDark: "Включить темную тему"
+    },
+    languageDialogTitle: "Язык приложения",
+    hero: {
+      beforeAccent: "Профессиональный ",
+      accent: "сервисный",
+      afterAccent: " центр",
+      subtitle:
+        "Надежный и качественный ремонт для ваших устройств. С нами ваши устройства в надежных руках.",
+      calculator: "Калькулятор",
+      contact: "Связаться",
+      scroll: "Прокрутите"
+    },
+    brandTitle: "Наши услуги",
+    serviceTabs: [
+      {
+        ...serviceTabs[0],
+        label: "Дисплей и сенсор",
+        title: "Замена и ремонт дисплея и сенсора",
+        description:
+          "Сенсор работает некорректно или совсем не реагирует? Мы исправим проблему или быстро и качественно заменим экран, сенсор и стекло вашего телефона.",
+        mediaNote: "Работаем с оригинальными экранными компонентами и аккуратной сборкой."
+      },
+      {
+        ...serviceTabs[1],
+        label: "Заднее стекло",
+        title: "Замена и восстановление заднего стекла",
+        description:
+          "Если задняя часть корпуса треснула или поцарапана, мы аккуратно восстановим внешний вид и защиту устройства.",
+        mediaNote: "Чистый и точный монтаж с сохранением геометрии корпуса."
+      },
+      {
+        ...serviceTabs[2],
+        label: "Экран смартфона",
+        title: "Диагностика и восстановление экрана смартфона",
+        description:
+          "Если изображение пропадает, появились пятна или сенсор реагирует с задержкой, мы быстро найдем причину и предложим подходящее решение.",
+        mediaNote: "Диагностика, подбор модуля и контроль качества в одном процессе."
+      },
+      {
+        ...serviceTabs[3],
+        label: "Модем и антенна",
+        title: "Неисправности модема и антенны",
+        description:
+          "При слабом сигнале, проблемах с сетью или качеством звонков проверим нужные участки платы и восстановим стабильную связь.",
+        mediaNote: "Стабильность сигнала и блоки связи проверяются специальным оборудованием."
+      },
+      {
+        ...serviceTabs[4],
+        label: "Wi-Fi и Bluetooth",
+        title: "Настройка Wi-Fi и Bluetooth подключений",
+        description:
+          "Если устройство не подключается к сети или не видит аксессуары, проверим модуль, плату и программную часть.",
+        mediaNote: "Беспроводные модули проверяются в реальных сценариях подключения."
+      },
+      {
+        ...serviceTabs[5],
+        label: "Батарея",
+        title: "Замена батареи и проверка системы питания",
+        description:
+          "Если телефон быстро разряжается, нагревается или неверно показывает проценты, обновим батарею и компоненты питания.",
+        mediaNote: "После установки новой батареи проверяем питание и калибруем циклы."
+      }
+    ],
+    servicesAria: "Направления услуг",
+    serviceMediaAria: "Процесс ремонта",
+    calculator: {
+      imageAlt: "Калькулятор ремонта Procare",
+      qualityTitle: "Гарантия качества!",
+      qualityText: "Даем годовую гарантию на каждое устройство!",
+      speedTitle: "Быстрый ремонт",
+      speedText: "Каждое устройство ремонтируется быстро и качественно",
+      titleBeforeAccent: "Рассчитайте ",
+      accent: "стоимость ремонта",
+      description:
+        "Используйте наш калькулятор, чтобы узнать стоимость ремонта устройства. Точную цену можно получить за несколько секунд.",
+      benefits: [
+        { ...calculatorBenefits[0], label: "Бесплатный расчет" },
+        { ...calculatorBenefits[1], label: "Точные цены" },
+        { ...calculatorBenefits[2], label: "Доступно 24/7" }
+      ],
+      cta: "Рассчитать цену"
+    },
+    why: {
+      title: "Почему Procare?",
+      accent: "Procare?",
+      subtitle: "Главные причины, по которым клиенты выбирают нас",
+      aria: "Преимущества Procare",
+      items: [
+        {
+          ...whyItems[0],
+          title: "Специальные скидки и бонусные программы",
+          mediaEyebrow: "Программа лояльности",
+          mediaBody:
+            "Для постоянных клиентов мы предлагаем бонусы, выгодные цены при повторном обращении и сезонные предложения.",
+          mediaStatLabel: "активных акций и бонусных направлений"
+        },
+        {
+          ...whyItems[1],
+          title: "Быстрый сервис и удобные локации",
+          mediaEyebrow: "Удобные сервисные точки",
+          mediaBody:
+            "До наших сервисных центров легко добраться, а процессы приема и выдачи настроены без лишнего ожидания.",
+          mediaStatLabel: "основные локации и быстрая система приема"
+        },
+        {
+          ...whyItems[2],
+          title: "Премиальные услуги защиты",
+          mediaEyebrow: "Дополнительная защита",
+          mediaBody:
+            "Чтобы результат ремонта сохранялся дольше, мы также предлагаем защитные аксессуары, профилактику и практичные рекомендации.",
+          mediaStatLabel: "комплексный подход к состоянию устройства"
+        },
+        {
+          ...whyItems[3],
+          title: "Диагностика и консультация",
+          mediaEyebrow: "Точный диагноз",
+          mediaBody:
+            "Перед заменой деталей мы полностью проверяем источник проблемы и рекомендуем точное решение без лишних расходов.",
+          mediaStatLabel: "консультация инженера и реальная диагностика"
+        },
+        {
+          ...whyItems[4],
+          title: "Ремонт с официальными комплектующими",
+          mediaEyebrow: "Надежная комплектация",
+          mediaBody:
+            "Детали тщательно подбираются по качеству и совместимости, поэтому устройство стабильно работает после ремонта.",
+          mediaStatLabel: "совместимые компоненты и контроль качества"
+        }
+      ]
+    },
+    probox: {
+      titleBeforeAccent: "Получите iPhone 17 с первоначальным взносом всего ",
+      accent: "1 000 000 сум",
+      titleAfterAccent: "",
+      cta: "Перейти в Probox",
+      imageAlt: "Предложение Probox iPhone 17",
+      noteLeftTitle: "В течение 24 часов",
+      noteLeftText: "Заявка будет рассмотрена, и оператор свяжется с вами",
+      noteRightTitle: "Официальные документы",
+      noteRightText: "Каждое устройство передается с проверкой и документами"
+    },
+    team: {
+      title: "Наша команда!",
+      accent: "команда!",
+      subtitle: "Наши специалисты бережно относятся к вашему устройству",
+      aria: "Члены команды",
+      roles: ["Эксперт", "Специалист", "Pro", "Специалист"]
+    },
+    app: {
+      appleTitle: "QR-код App Store",
+      playTitle: "QR-код Play Market",
+      qrText: "Начните заказ прямо сейчас",
+      note: "Все права защищены, загрузка безопасна"
+    },
+    faq: {
+      title: "Часто задаваемые вопросы",
+      accent: "вопросы",
+      items: [
+        {
+          question: "Сколько времени занимает ремонт iPhone?",
+          subtext: "Распространенные виды ремонта обычно завершаются в тот же день.",
+          answer:
+            "Обычно ремонт занимает от 30 минут до 2 часов. Сложные неисправности могут потребовать полной диагностики."
+        },
+        {
+          question: "Вы используете оригинальные запчасти?",
+          subtext: "Каждая деталь подбирается по совместимости и уровню качества.",
+          answer:
+            "Да, по возможности мы используем оригинальные или максимально близкие к оригиналу проверенные запчасти. В зависимости от модели и типа ремонта заранее объясняем доступные варианты."
+        },
+        {
+          question: "Какую гарантию я получу после ремонта Apple-устройства?",
+          subtext: "Срок гарантии зависит от типа выполненной работы.",
+          answer:
+            "После ремонта гарантия предоставляется в зависимости от выполненной работы и установленной детали. При выдаче устройства мы четко объясняем условия, срок действия и порядок обращения."
+        },
+        {
+          question: "Что нужно сделать, чтобы сдать устройство в ремонт?",
+          subtext: "Процесс простой: обращение, диагностика, согласование и ремонт.",
+          answer:
+            "Вы можете прийти в сервисный центр с устройством или заранее связаться с нами и кратко описать проблему. После приема проводится диагностика, согласуются цена и сроки, затем начинается ремонт."
+        },
+        {
+          question: "Повлияет ли самостоятельный ремонт iPhone на гарантию?",
+          subtext: "Неправильное вскрытие или вмешательство может повлиять на дальнейшее обслуживание.",
+          answer:
+            "Да, самостоятельное вскрытие, использование неподходящих деталей или повреждение внутренних компонентов может повлиять на гарантию. Поэтому перед вмешательством рекомендуем пройти сервисную диагностику."
+        },
+        {
+          question: "Вы ремонтируете только iPhone или принимаете другие устройства Apple?",
+          subtext: "Наш сервис не ограничивается iPhone.",
+          answer:
+            "Нет, кроме iPhone мы также принимаем iPad, MacBook, Apple Watch и некоторые другие устройства Apple. Порядок диагностики и ремонта зависит от типа устройства."
+        }
+      ]
+    },
+    footer: {
+      offer: "Публичная оферта",
+      privacy: "Политика конфиденциальности",
+      address: "ул. Каратас, 5B",
+      socialsAria: "Социальные сети"
+    }
+  },
+  en: {
+    header: {
+      calculator: "Calculator",
+      about: "About us",
+      request: "Leave a request",
+      languageAria: "Choose language",
+      logoAria: "Procare home",
+      navAria: "Main navigation",
+      contactAria: "Contact us",
+      themeLight: "Switch to light mode",
+      themeDark: "Switch to dark mode"
+    },
+    languageDialogTitle: "App language",
+    hero: {
+      beforeAccent: "Professional ",
+      accent: "service",
+      afterAccent: " center",
+      subtitle: "Reliable, high-quality repair services for your devices. With us, your devices are in trusted hands.",
+      calculator: "Calculator",
+      contact: "Contact us",
+      scroll: "Scroll"
+    },
+    brandTitle: "Our services",
+    serviceTabs: [
+      {
+        ...serviceTabs[0],
+        label: "Display and sensor",
+        title: "Display and sensor replacement and repair",
+        description:
+          "Is the sensor working incorrectly or not responding at all? We will fix it or quickly replace your phone's screen, sensor and glass with care.",
+        mediaNote: "We work with original screen components and a precise assembly process."
+      },
+      {
+        ...serviceTabs[1],
+        label: "Back glass",
+        title: "Back glass replacement and restoration",
+        description:
+          "If the back of the body is cracked or scratched, we carefully renew the look and protection of your device.",
+        mediaNote: "Clean, accurate installation while preserving the body geometry."
+      },
+      {
+        ...serviceTabs[2],
+        label: "Smartphone screen",
+        title: "Smartphone screen diagnostics and restoration",
+        description:
+          "If the image disappears, stains appear, or the touch layer responds slowly, we quickly identify the issue and recommend the right screen solution.",
+        mediaNote: "Diagnostics, module selection and quality control are handled in one process."
+      },
+      {
+        ...serviceTabs[3],
+        label: "Modem and antenna",
+        title: "Modem and antenna related issues",
+        description:
+          "For weak signal, network issues or call quality problems, we check the required board sections and restore stable connectivity.",
+        mediaNote: "Signal stability and communication blocks are checked with dedicated equipment."
+      },
+      {
+        ...serviceTabs[4],
+        label: "Wi-Fi and Bluetooth",
+        title: "Wi-Fi and Bluetooth connection setup",
+        description:
+          "If your device cannot connect to a network or find accessories, we check the module, board and software layer.",
+        mediaNote: "Wireless modules are tested through real connection scenarios."
+      },
+      {
+        ...serviceTabs[5],
+        label: "Battery",
+        title: "Battery replacement and power system check",
+        description:
+          "If the phone drains fast, overheats or shows incorrect percentages, we update the battery and power management parts.",
+        mediaNote: "After installing a new battery, we check power behavior and recalibrate cycles."
+      }
+    ],
+    servicesAria: "Service categories",
+    serviceMediaAria: "Repair process",
+    calculator: {
+      imageAlt: "Procare repair calculator",
+      qualityTitle: "Quality guarantee!",
+      qualityText: "We provide a one-year warranty for every device!",
+      speedTitle: "Fast repair",
+      speedText: "Every device is repaired quickly and carefully",
+      titleBeforeAccent: "Calculate the ",
+      accent: "repair price",
+      description:
+        "Use our calculator to learn the repair price for your device. Get an accurate estimate in just a few seconds.",
+      benefits: [
+        { ...calculatorBenefits[0], label: "Free estimate" },
+        { ...calculatorBenefits[1], label: "Clear pricing" },
+        { ...calculatorBenefits[2], label: "Available 24/7" }
+      ],
+      cta: "Calculate price"
+    },
+    why: {
+      title: "Why Procare?",
+      accent: "Procare?",
+      subtitle: "The main reasons our customers choose us",
+      aria: "Procare advantages",
+      items: [
+        {
+          ...whyItems[0],
+          title: "Special discounts and bonus programs",
+          mediaEyebrow: "Loyalty program",
+          mediaBody:
+            "We make service more valuable for returning customers with bonuses, better repeat-visit pricing and seasonal offers.",
+          mediaStatLabel: "active promotions and bonus directions"
+        },
+        {
+          ...whyItems[1],
+          title: "Fast service and convenient locations",
+          mediaEyebrow: "Convenient service points",
+          mediaBody:
+            "Our service centers are easy to reach, and internal processes are tuned for quick intake and handover.",
+          mediaStatLabel: "main locations and a fast intake system"
+        },
+        {
+          ...whyItems[2],
+          title: "Premium protection services",
+          mediaEyebrow: "Additional protection",
+          mediaBody:
+            "To keep the post-repair condition longer, we also provide protective accessories, prevention and practical usage advice.",
+          mediaStatLabel: "complete device-care approach"
+        },
+        {
+          ...whyItems[3],
+          title: "Diagnostics and consultation",
+          mediaEyebrow: "Precise diagnostics",
+          mediaBody:
+            "Before replacing anything, we fully check the source of the problem and recommend an exact solution without unnecessary costs.",
+          mediaStatLabel: "engineer consultation and real diagnostics"
+        },
+        {
+          ...whyItems[4],
+          title: "Repair with official spare parts",
+          mediaEyebrow: "Reliable components",
+          mediaBody:
+            "The parts we provide are carefully selected for quality and compatibility, helping the device work steadily after repair.",
+          mediaStatLabel: "compatible components and quality control"
+        }
+      ]
+    },
+    probox: {
+      titleBeforeAccent: "Get an iPhone 17 with only ",
+      accent: "1,000,000 UZS",
+      titleAfterAccent: " as the initial payment",
+      cta: "Go to Probox",
+      imageAlt: "Probox iPhone 17 offer",
+      noteLeftTitle: "Within 24 hours",
+      noteLeftText: "The request is reviewed and an operator contacts you",
+      noteRightTitle: "Official documents",
+      noteRightText: "Every device is handed over with inspection and documents"
+    },
+    team: {
+      title: "Our team!",
+      accent: "team!",
+      subtitle: "Our specialists handle your device with care",
+      aria: "Team members",
+      roles: ["Expert", "Specialist", "Pro", "Specialist"]
+    },
+    app: {
+      appleTitle: "App Store QR code",
+      playTitle: "Play Market QR code",
+      qrText: "Start your order now",
+      note: "All rights reserved and the download is secured"
+    },
+    faq: {
+      title: "Frequently asked questions",
+      accent: "questions",
+      items: [
+        {
+          question: "How long does iPhone repair take?",
+          subtext: "Common repairs are usually completed the same day.",
+          answer:
+            "Repair usually takes from 30 minutes to 2 hours. More complex issues may require full diagnostics."
+        },
+        {
+          question: "Do you use genuine spare parts?",
+          subtext: "Each part is selected for device compatibility and quality level.",
+          answer:
+            "Yes. Whenever possible, we use original or carefully verified parts that are as close to original quality as possible. Depending on the model and repair type, we explain the available options in advance."
+        },
+        {
+          question: "What warranty do I get after my Apple product is repaired?",
+          subtext: "The warranty period is provided officially based on the work performed.",
+          answer:
+            "After repair, the warranty depends on the completed work and the installed part. When the device is returned, we clearly explain the warranty terms, duration and support process."
+        },
+        {
+          question: "What should I do to repair my product?",
+          subtext: "The intake process is simple: request, diagnostics, approval and repair.",
+          answer:
+            "You can visit our service center with your device or contact us in advance with a short description of the issue. After intake, diagnostics are performed, the price and timing are approved, and repair begins."
+        },
+        {
+          question: "Will trying to repair my iPhone myself affect the warranty?",
+          subtext: "Incorrect opening or intervention can affect further service in some cases.",
+          answer:
+            "Yes. Opening the device incorrectly, using incompatible parts or damaging internal components can affect the warranty. We recommend service diagnostics before any intervention."
+        },
+        {
+          question: "Do you only repair iPhones, or do you accept other Apple products too?",
+          subtext: "Our service scope is not limited to iPhone.",
+          answer:
+            "No, in addition to iPhone we also accept iPad, MacBook, Apple Watch and some other Apple devices. Diagnostics and repair flow are defined separately based on the device type."
+        }
+      ]
+    },
+    footer: {
+      offer: "Public offer",
+      privacy: "Privacy policy",
+      address: "Karatosh street, 5B",
+      socialsAria: "Social networks"
+    }
+  }
+};
+
 function buildMaskStyle({
   src,
   width,
@@ -492,6 +1099,47 @@ function SectionTitle({
   );
 }
 
+function LanguageFlag({ src }: { src: string }) {
+  return (
+    <span className="language-flag" aria-hidden="true">
+      <Image src={src} alt="" width={24} height={24} />
+    </span>
+  );
+}
+
+function LanguageChoiceList({
+  activeLanguage,
+  currentLanguage,
+  onLanguageChange
+}: {
+  activeLanguage: LanguageCode;
+  currentLanguage: LanguageCode;
+  onLanguageChange: (language: LanguageCode) => void;
+}) {
+  return (
+    <div className="language-options" role="listbox" aria-label={copy[currentLanguage].header.languageAria}>
+      {languageOptions.map((language) => {
+        const isActive = language.code === activeLanguage;
+
+        return (
+          <button
+            aria-selected={isActive}
+            className={`language-option ${isActive ? "is-active" : ""}`}
+            key={language.code}
+            role="option"
+            type="button"
+            onClick={() => onLanguageChange(language.code)}
+          >
+            <LanguageFlag src={language.flagSrc} />
+            <span>{language.labels[currentLanguage]}</span>
+            <span className="language-radio" aria-hidden="true" />
+          </button>
+        );
+      })}
+    </div>
+  );
+}
+
 function HeaderSunIcon() {
   return (
     <svg
@@ -512,26 +1160,87 @@ function HeaderSunIcon() {
 
 function Header({
   theme,
-  onThemeToggle
+  language,
+  content,
+  onThemeToggle,
+  onLanguageChange
 }: {
   theme: ThemeMode;
+  language: LanguageCode;
+  content: LandingCopy;
   onThemeToggle: () => void;
+  onLanguageChange: (language: LanguageCode) => void;
 }) {
-  const nextThemeLabel = theme === "dark" ? "Light mode yoqish" : "Dark mode yoqish";
+  const [isLanguagePickerOpen, setLanguagePickerOpen] = useState(false);
+  const languageSwitcherRef = useRef<HTMLDivElement>(null);
+  const selectedLanguage = languageOptions.find((option) => option.code === language) ?? languageOptions[0];
+  const nextThemeLabel = theme === "dark" ? content.header.themeLight : content.header.themeDark;
+
+  useEffect(() => {
+    if (!isLanguagePickerOpen) {
+      return;
+    }
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        setLanguagePickerOpen(false);
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [isLanguagePickerOpen]);
+
+  useEffect(() => {
+    if (!isLanguagePickerOpen) {
+      return;
+    }
+
+    const handlePointerDown = (event: PointerEvent) => {
+      const target = event.target as Node;
+
+      if (languageSwitcherRef.current?.contains(target)) {
+        return;
+      }
+
+      if (target instanceof Element && target.closest(".language-dialog")) {
+        return;
+      }
+
+      setLanguagePickerOpen(false);
+    };
+
+    window.addEventListener("pointerdown", handlePointerDown);
+
+    return () => window.removeEventListener("pointerdown", handlePointerDown);
+  }, [isLanguagePickerOpen]);
+
+  const handleLanguageChange = (nextLanguage: LanguageCode) => {
+    onLanguageChange(nextLanguage);
+    setLanguagePickerOpen(false);
+  };
 
   return (
     <header className="site-header" data-node-id="3035:35828">
-      <button className="mobile-flag-button" type="button" aria-label="Tilni tanlash">
-        <Image src={asset("uzbekistan-flag.svg")} alt="" width={20} height={20} />
+      <button
+        aria-expanded={isLanguagePickerOpen}
+        aria-haspopup="dialog"
+        className="mobile-flag-button"
+        type="button"
+        aria-label={content.header.languageAria}
+        onClick={() => setLanguagePickerOpen(true)}
+      >
+        <LanguageFlag src={selectedLanguage.flagSrc} />
       </button>
 
-      <a className="logo-link" href="#hero" aria-label="Procare bosh sahifasi">
+      <a className="logo-link" href="#hero" aria-label={content.header.logoAria}>
         <Image src={asset("procare-logo-header.svg")} alt="Procare" width={136} height={45} priority />
       </a>
 
-      <nav className="main-nav" aria-label="Asosiy navigatsiya">
-        <a href="#calculator">Kalkulyator</a>
-        <a href="#why-procare">Biz haqimizda</a>
+      <nav className="main-nav" aria-label={content.header.navAria}>
+        <a href="#calculator">{content.header.calculator}</a>
+        <a href="#why-procare">{content.header.about}</a>
       </nav>
 
       <div className="header-actions">
@@ -549,22 +1258,65 @@ function Header({
           )}
         </button>
         <span className="header-divider" aria-hidden="true" />
-        <button className="language-switch" type="button" aria-label="Tilni tanlash">
-          <Image src={asset("uzbekistan-flag.svg")} alt="" width={24} height={24} />
-          <span>O’zb</span>
-        </button>
+        <div className="language-switcher" ref={languageSwitcherRef}>
+          <button
+            aria-expanded={isLanguagePickerOpen}
+            aria-haspopup="listbox"
+            className="language-switch"
+            type="button"
+            aria-label={content.header.languageAria}
+            onClick={() => setLanguagePickerOpen((isOpen) => !isOpen)}
+          >
+            <LanguageFlag src={selectedLanguage.flagSrc} />
+            <span>{selectedLanguage.shortLabel}</span>
+          </button>
+          {isLanguagePickerOpen ? (
+            <div className="language-menu" data-node-id="3127:31664">
+              <LanguageChoiceList
+                activeLanguage={language}
+                currentLanguage={language}
+                onLanguageChange={handleLanguageChange}
+              />
+            </div>
+          ) : null}
+        </div>
         <ButtonLink href="#contact" variant="outline">
-          Ariza qoldirish
+          {content.header.request}
         </ButtonLink>
-        <a className="mobile-chat-button" href="#contact" aria-label="Murojaat qilish">
+        <a className="mobile-chat-button" href="#contact" aria-label={content.header.contactAria}>
           <Image className="header-action-icon" src={asset("header-chat.svg")} alt="" width={20} height={20} />
         </a>
       </div>
+      {isLanguagePickerOpen ? (
+        <div className="language-modal-backdrop" role="presentation" onClick={() => setLanguagePickerOpen(false)}>
+          <div
+            aria-modal="true"
+            className="language-dialog"
+            role="dialog"
+            aria-labelledby="language-dialog-title"
+            data-node-id="3127:33719"
+            onClick={(event) => event.stopPropagation()}
+          >
+            <h2 id="language-dialog-title">{content.languageDialogTitle}</h2>
+            <button
+              className="language-dialog-close"
+              type="button"
+              aria-label="Close"
+              onClick={() => setLanguagePickerOpen(false)}
+            />
+            <LanguageChoiceList
+              activeLanguage={language}
+              currentLanguage={language}
+              onLanguageChange={handleLanguageChange}
+            />
+          </div>
+        </div>
+      ) : null}
     </header>
   );
 }
 
-function Hero() {
+function Hero({ content }: { content: LandingCopy }) {
   return (
     <section className="hero-section" id="hero" data-node-id="3035:35923">
       <video
@@ -582,32 +1334,34 @@ function Hero() {
 
       <div className="hero-copy">
         <h1>
-          Professional <span>servis</span> markazi
+          {content.hero.beforeAccent}
+          <span>{content.hero.accent}</span>
+          {content.hero.afterAccent}
         </h1>
-        <p>Sizning qurilmalaringiz uchun ishonchli va sifatli ta'mirlash xizmatlari. Biz bilan qurilmalaringiz ishonchli qo'llarda.</p>
+        <p>{content.hero.subtitle}</p>
         <div className="hero-actions">
           <ButtonLink href="#calculator" variant="glass">
-            Kalkulyator
+            {content.hero.calculator}
           </ButtonLink>
-          <ButtonLink href="#contact">Murojaat qilish</ButtonLink>
+          <ButtonLink href="#contact">{content.hero.contact}</ButtonLink>
         </div>
       </div>
 
       <div className="scroll-cue" aria-hidden="true">
         <span />
-        <small>Scroll qiling</small>
+        <small>{content.hero.scroll}</small>
       </div>
     </section>
   );
 }
 
-function BrandStrip() {
+function BrandStrip({ content }: { content: LandingCopy }) {
   const brandRef = useHorizontalCarousel({ autoScroll: true, speed: 0.5 });
 
   return (
-    <section className="brand-strip" aria-label="Bizning xizmatlarimiz" data-node-id="3040:35961">
-      <p>Bizning xizmatlarimiz</p>
-      <div className="brand-viewport" ref={brandRef} tabIndex={0} aria-label="Brendlar ro‘yxati">
+    <section className="brand-strip" aria-label={content.brandTitle} data-node-id="3040:35961">
+      <p>{content.brandTitle}</p>
+      <div className="brand-viewport" ref={brandRef} tabIndex={0} aria-label={content.brandTitle}>
         <div className="brand-track">
           {partnerLogos.map((logo, index) => (
             <div className="brand-card" key={`${logo.alt}-${index}`}>
@@ -620,9 +1374,9 @@ function BrandStrip() {
   );
 }
 
-function ServiceFeature() {
+function ServiceFeature({ content }: { content: LandingCopy }) {
   const [activeServiceIndex, setActiveServiceIndex] = useState(0);
-  const activeService = serviceTabs[activeServiceIndex];
+  const activeService = content.serviceTabs[activeServiceIndex];
 
   return (
     <section className="service-grid" id="services">
@@ -631,11 +1385,11 @@ function ServiceFeature() {
         <div className="service-copy">
           <h2>{activeService.title}</h2>
           <p>{activeService.description}</p>
-          <ButtonLink href="#contact">Murojaat qilish</ButtonLink>
+          <ButtonLink href="#contact">{content.hero.contact}</ButtonLink>
         </div>
 
-        <div className="service-tabs" role="tablist" aria-label="Xizmat yo‘nalishlari">
-          {serviceTabs.map((tab, index) => {
+        <div className="service-tabs" role="tablist" aria-label={content.servicesAria}>
+          {content.serviceTabs.map((tab, index) => {
             const isActive = index === activeServiceIndex;
 
             return (
@@ -663,7 +1417,7 @@ function ServiceFeature() {
       </article>
 
       <article
-        aria-label="Ta'mirlash jarayoni"
+        aria-label={content.serviceMediaAria}
         aria-labelledby={`service-tab-${activeServiceIndex}`}
         className="service-card service-card--media"
         data-node-id="3042:36014"
@@ -688,31 +1442,32 @@ function ServiceFeature() {
   );
 }
 
-function Calculator() {
+function Calculator({ content }: { content: LandingCopy }) {
   return (
     <section className="calculator-grid" id="calculator">
       <article className="repair-visual" data-node-id="3049:36400">
-        <Image src={asset("repair-phone.png")} alt="Procare ta'mirlash kalkulyatori" width={287} height={287} />
+        <Image src={asset("repair-phone.png")} alt={content.calculator.imageAlt} width={287} height={287} />
         <div className="glass-note glass-note--quality">
-          <strong>Sifat kafolati!</strong>
-          <span>Har bir qurilma uchun bir yillik kafolat beramiz!</span>
+          <strong>{content.calculator.qualityTitle}</strong>
+          <span>{content.calculator.qualityText}</span>
         </div>
         <div className="glass-note glass-note--speed">
-          <strong>Tezkor ta’mirlash</strong>
-          <span>Har bir qurilma tez va sifatli ta’mirlab beriladi</span>
+          <strong>{content.calculator.speedTitle}</strong>
+          <span>{content.calculator.speedText}</span>
         </div>
       </article>
 
       <article className="calculator-card" data-node-id="3062:38356">
         <div className="calculator-copy">
           <h2>
-            Ta'mirlash narxini <span>hisoblang</span>
+            {content.calculator.titleBeforeAccent}
+            <span>{content.calculator.accent}</span>
           </h2>
-          <p>Qurilmangiz ta'mirlash narxini bilish uchun kalkulyatorimizdan foydalaning. Aniq narxni bir necha soniyada bilib oling.</p>
+          <p>{content.calculator.description}</p>
         </div>
 
         <div className="calculator-benefits">
-          {calculatorBenefits.map((item) => (
+          {content.calculator.benefits.map((item) => (
             <div className="calculator-benefit" key={item.label}>
               <span className={`calculator-icon calculator-icon--${item.tone}`}>
                 <Image src={item.icon} alt="" width={24} height={24} />
@@ -722,24 +1477,24 @@ function Calculator() {
           ))}
         </div>
 
-        <ButtonLink href="#contact">Narxni hisoblash</ButtonLink>
+        <ButtonLink href="#contact">{content.calculator.cta}</ButtonLink>
       </article>
     </section>
   );
 }
 
-function WhyProcare() {
+function WhyProcare({ content }: { content: LandingCopy }) {
   const [activeWhyIndex, setActiveWhyIndex] = useState(0);
-  const activeWhy = whyItems[activeWhyIndex];
+  const activeWhy = content.why.items[activeWhyIndex];
 
   return (
     <section className="why-section" id="why-procare" data-node-id="3062:38463">
-      <SectionTitle title="Nima uchun Procare?" accent="Procare?" />
-      <p className="section-subtitle">Bizning mijozlarimiz tanlashimizning asosiy sabablari</p>
+      <SectionTitle title={content.why.title} accent={content.why.accent} />
+      <p className="section-subtitle">{content.why.subtitle}</p>
 
       <div className="why-grid">
-        <div className="why-list" role="tablist" aria-label="Procare afzalliklari">
-          {whyItems.map((item, index) => {
+        <div className="why-list" role="tablist" aria-label={content.why.aria}>
+          {content.why.items.map((item, index) => {
             const isActive = index === activeWhyIndex;
 
             return (
@@ -795,52 +1550,54 @@ function WhyProcare() {
   );
 }
 
-function ProboxBanner() {
+function ProboxBanner({ content }: { content: LandingCopy }) {
   return (
     <section className="probox-banner" data-node-id="3067:42090">
       <Image className="probox-logo" src={asset("probox-logo.svg")} alt="Probox" width={125} height={42} loading="eager" />
       <div className="probox-copy">
         <h2>
-          Atiga <span>1 000 000 so‘m</span> boshlang‘ich to‘lov bilan Iphone 17 ga ega bo‘ling
+          {content.probox.titleBeforeAccent}
+          <span>{content.probox.accent}</span>
+          {content.probox.titleAfterAccent}
         </h2>
-        <ButtonLink href="#contact">Probox’ga o’tish</ButtonLink>
+        <ButtonLink href="#contact">{content.probox.cta}</ButtonLink>
       </div>
       <Image
         className="probox-phone"
         src={asset("probox-banner-phone.png")}
-        alt="Probox iPhone 17 taklifi"
+        alt={content.probox.imageAlt}
         width={1033}
         height={689}
         loading="eager"
       />
       <div className="glass-note probox-note probox-note--left">
-        <strong>24 soat ichida</strong>
-        <span>Ariza ko‘rib chiqiladi va operator bog‘lanadi</span>
+        <strong>{content.probox.noteLeftTitle}</strong>
+        <span>{content.probox.noteLeftText}</span>
       </div>
       <div className="glass-note probox-note probox-note--right">
-        <strong>Rasmiy hujjatlar</strong>
-        <span>Har bir qurilma tekshiruv va hujjatlar bilan topshiriladi</span>
+        <strong>{content.probox.noteRightTitle}</strong>
+        <span>{content.probox.noteRightText}</span>
       </div>
     </section>
   );
 }
 
-function Team() {
+function Team({ content }: { content: LandingCopy }) {
   const teamRef = useHorizontalCarousel();
 
   return (
     <section className="team-section" data-node-id="3059:36612">
-      <SectionTitle title="Bizning jamoamiz!" accent="jamoamiz!" />
-      <p className="section-subtitle">Mutaxassislarimiz qurilmangizga ehtiyotkorlik bilan yondashadi</p>
-      <div className="team-track" ref={teamRef} tabIndex={0} aria-label="Jamoa a’zolari">
-        {teamMembers.map((member) => (
+      <SectionTitle title={content.team.title} accent={content.team.accent} />
+      <p className="section-subtitle">{content.team.subtitle}</p>
+      <div className="team-track" ref={teamRef} tabIndex={0} aria-label={content.team.aria}>
+        {teamMembers.map((member, index) => (
           <article className="team-card" key={`${member.name}-${member.role}`}>
             <div className="member-photo">
               <Image className={member.imageClass} src={member.image} alt={member.name} width={304} height={440} loading="eager" />
             </div>
             <div className="member-info">
               <h3>{member.name}</h3>
-              <p>{member.role}</p>
+              <p>{content.team.roles[index] ?? member.role}</p>
             </div>
           </article>
         ))}
@@ -849,7 +1606,7 @@ function Team() {
   );
 }
 
-function AppDownload() {
+function AppDownload({ content }: { content: LandingCopy }) {
   return (
     <section className="app-section" id="contact" data-node-id="3067:40407">
       <div className="qr-card qr-card--apple">
@@ -860,8 +1617,8 @@ function AppDownload() {
           </span>
         </div>
         <div>
-          <h3>App Store QR-kodi</h3>
-          <p>Hoziroq buyurtmani boshlang</p>
+          <h3>{content.app.appleTitle}</h3>
+          <p>{content.app.qrText}</p>
         </div>
       </div>
 
@@ -888,8 +1645,8 @@ function AppDownload() {
 
       <div className="qr-card qr-card--play">
         <div>
-          <h3>Play Market QR-kodi</h3>
-          <p>Hoziroq buyurtmani boshlang</p>
+          <h3>{content.app.playTitle}</h3>
+          <p>{content.app.qrText}</p>
         </div>
         <div className="qr-code">
           <Image src={asset("qr-image.svg")} alt="" width={90} height={90} />
@@ -901,20 +1658,21 @@ function AppDownload() {
 
       <Image className="app-brand" src={asset("app-logo.svg")} alt="Procare" width={189} height={63} loading="eager" />
       <p className="app-note">
-        <span>* </span>Barcha huquqlar himoyalangan va yuklab olib xavfsizligi ta’minlangan
+        <span>* </span>
+        {content.app.note}
       </p>
     </section>
   );
 }
 
-function Faq() {
+function Faq({ content }: { content: LandingCopy }) {
   const [openFaqIndex, setOpenFaqIndex] = useState<number | null>(0);
 
   return (
     <section className="faq-section" data-node-id="3059:36579">
-      <SectionTitle title="Ko‘p so‘raladigan savollar" accent="savollar" />
+      <SectionTitle title={content.faq.title} accent={content.faq.accent} />
       <div className="faq-list">
-        {faqItems.map((item, index) => {
+        {content.faq.items.map((item, index) => {
           const isOpen = openFaqIndex === index;
 
           return (
@@ -943,7 +1701,7 @@ function Faq() {
   );
 }
 
-function Footer() {
+function Footer({ content }: { content: LandingCopy }) {
   return (
     <footer className="site-footer" data-node-id="3056:36402">
       <div className="footer-card">
@@ -966,10 +1724,10 @@ function Footer() {
             <span className="footer-contact-icon">
               <MaskIcon className="footer-contact-symbol" src={asset("footer-location.svg")} width={18} height={22} color="var(--blue)" />
             </span>
-            <span>Qoratosh ko‘chasi, 5B</span>
+            <span>{content.footer.address}</span>
           </a>
         </div>
-        <div className="social-links" aria-label="Ijtimoiy tarmoqlar">
+        <div className="social-links" aria-label={content.footer.socialsAria}>
           {footerSocialLinks.map((link) => (
             <a href="#" aria-label={link.label} key={link.label}>
               <MaskIcon
@@ -986,8 +1744,8 @@ function Footer() {
       <div className="footer-bottom">
         <p>© Procare, 2026</p>
         <div>
-          <a href="#">Ommaviy offerta</a>
-          <a href="#">Maxfiylik siyosati</a>
+          <a href="#">{content.footer.offer}</a>
+          <a href="#">{content.footer.privacy}</a>
         </div>
       </div>
     </footer>
@@ -997,12 +1755,19 @@ function Footer() {
 export default function Home() {
   const [theme, setTheme] = useState<ThemeMode>("light");
   const [themeLoaded, setThemeLoaded] = useState(false);
+  const [language, setLanguage] = useState<LanguageCode>("uz");
+  const content = copy[language];
 
   useEffect(() => {
     const storedTheme = window.localStorage.getItem("procare-theme");
+    const storedLanguage = window.localStorage.getItem("procare-language");
 
     if (storedTheme === "light" || storedTheme === "dark") {
       setTheme(storedTheme);
+    }
+
+    if (storedLanguage === "uz" || storedLanguage === "ru" || storedLanguage === "en") {
+      setLanguage(storedLanguage);
     }
 
     setThemeLoaded(true);
@@ -1016,27 +1781,41 @@ export default function Home() {
     }
   }, [theme, themeLoaded]);
 
+  useEffect(() => {
+    document.documentElement.lang = language;
+
+    if (themeLoaded) {
+      window.localStorage.setItem("procare-language", language);
+    }
+  }, [language, themeLoaded]);
+
   const toggleTheme = () => {
     setTheme((currentTheme) => (currentTheme === "dark" ? "light" : "dark"));
   };
 
   return (
-    <main data-theme={theme}>
+    <main data-theme={theme} data-language={language}>
       <div className="page-frame">
-        <Header theme={theme} onThemeToggle={toggleTheme} />
-        <Hero />
+        <Header
+          theme={theme}
+          language={language}
+          content={content}
+          onThemeToggle={toggleTheme}
+          onLanguageChange={setLanguage}
+        />
+        <Hero content={content} />
       </div>
-      <BrandStrip />
+      <BrandStrip content={content} />
       <div className="page-frame page-frame--content">
-        <ServiceFeature />
-        <Calculator />
-        <WhyProcare />
-        <ProboxBanner />
-        <Team />
-        <AppDownload />
-        <Faq />
+        <ServiceFeature content={content} />
+        <Calculator content={content} />
+        <WhyProcare content={content} />
+        <ProboxBanner content={content} />
+        <Team content={content} />
+        <AppDownload content={content} />
+        <Faq content={content} />
       </div>
-      <Footer />
+      <Footer content={content} />
     </main>
   );
 }
