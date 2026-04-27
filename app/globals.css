@@ -608,6 +608,12 @@ main > .page-frame:first-child {
   gap: 16px;
 }
 
+.brand-track-set {
+  display: flex;
+  flex: 0 0 auto;
+  gap: 16px;
+}
+
 .brand-viewport::-webkit-scrollbar,
 .team-track::-webkit-scrollbar {
   display: none;
@@ -1915,6 +1921,10 @@ main > .page-frame:first-child {
   }
 
   .brand-track {
+    gap: 10px;
+  }
+
+  .brand-track-set {
     gap: 10px;
   }
 

@@ -146,10 +146,6 @@ const partnerLogos: PartnerLogo[] = [
   { src: asset("brand-xiaomi.png"), alt: "Xiaomi", width: 110, height: 56 },
   { src: asset("brand-apple.png"), alt: "Apple", width: 104, height: 16 },
   { src: asset("brand-samsung.png"), alt: "Samsung", width: 78, height: 36 },
-  { src: asset("brand-lg.png"), alt: "LG", width: 114, height: 32 },
-  { src: asset("brand-xiaomi.png"), alt: "Xiaomi", width: 110, height: 56 },
-  { src: asset("brand-apple.png"), alt: "Apple", width: 104, height: 16 },
-  { src: asset("brand-samsung.png"), alt: "Samsung", width: 78, height: 36 },
   { src: asset("brand-lg.png"), alt: "LG", width: 114, height: 32 }
 ];
 
@@ -936,10 +932,12 @@ function MaskIcon({
 
 function useHorizontalCarousel({
   autoScroll = false,
-  speed = 0.45
+  speed = 0.45,
+  loop = false
 }: {
   autoScroll?: boolean;
   speed?: number;
+  loop?: boolean;
 } = {}) {
   const ref = useRef<HTMLDivElement>(null);
 
@@ -957,7 +955,23 @@ function useHorizontalCarousel({
     let startScrollLeft = 0;
     const mediaQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
 
-    const getLoopWidth = () => (autoScroll ? element.scrollWidth / 2 : 0);
+    const getLoopWidth = () => {
+      if (!autoScroll && !loop) {
+        return 0;
+      }
+
+      const firstSet = element.querySelector<HTMLElement>("[data-carousel-set='true']");
+
+      if (!firstSet) {
+        return element.scrollWidth / 2;
+      }
+
+      const track = firstSet.parentElement;
+      const trackStyle = track ? window.getComputedStyle(track) : null;
+      const trackGap = trackStyle ? Number.parseFloat(trackStyle.columnGap || trackStyle.gap || "0") : 0;
+
+      return firstSet.offsetWidth + (Number.isFinite(trackGap) ? trackGap : 0);
+    };
 
     const normalizeLoop = () => {
       const loopWidth = getLoopWidth();
@@ -966,7 +980,7 @@ function useHorizontalCarousel({
         return;
       }
 
-      if (element.scrollLeft >= loopWidth) {
+      while (element.scrollLeft >= loopWidth) {
         element.scrollLeft -= loopWidth;
       }
     };
@@ -1028,6 +1042,15 @@ function useHorizontalCarousel({
 
     const handleTouchEnd = () => {
       hovering = false;
+      normalizeLoop();
+    };
+
+    const handleScroll = () => {
+      if (!loop || dragging) {
+        return;
+      }
+
+      normalizeLoop();
     };
 
     animationFrame = window.requestAnimationFrame(tick);
@@ -1039,6 +1062,7 @@ function useHorizontalCarousel({
     element.addEventListener("touchstart", handleTouchStart, { passive: true });
     element.addEventListener("touchend", handleTouchEnd, { passive: true });
     element.addEventListener("touchcancel", handleTouchEnd, { passive: true });
+    element.addEventListener("scroll", handleScroll, { passive: true });
     window.addEventListener("mousemove", handleMouseMove);
     window.addEventListener("mouseup", handleMouseUp);
 
@@ -1052,10 +1076,11 @@ function useHorizontalCarousel({
       element.removeEventListener("touchstart", handleTouchStart);
       element.removeEventListener("touchend", handleTouchEnd);
       element.removeEventListener("touchcancel", handleTouchEnd);
+      element.removeEventListener("scroll", handleScroll);
       window.removeEventListener("mousemove", handleMouseMove);
       window.removeEventListener("mouseup", handleMouseUp);
     };
-  }, [autoScroll, speed]);
+  }, [autoScroll, loop, speed]);
 
   return ref;
 }
@@ -1356,16 +1381,31 @@ function Hero({ content }: { content: LandingCopy }) {
 }
 
 function BrandStrip({ content }: { content: LandingCopy }) {
-  const brandRef = useHorizontalCarousel({ autoScroll: true, speed: 0.5 });
+  const brandRef = useHorizontalCarousel({ autoScroll: true, loop: true, speed: 0.5 });
+  const carouselCopies = Array.from({ length: 4 }, (_, index) => index);
 
   return (
     <section className="brand-strip" aria-label={content.brandTitle} data-node-id="3040:35961">
       <p>{content.brandTitle}</p>
       <div className="brand-viewport" ref={brandRef} tabIndex={0} aria-label={content.brandTitle}>
         <div className="brand-track">
-          {partnerLogos.map((logo, index) => (
-            <div className="brand-card" key={`${logo.alt}-${index}`}>
-              <Image src={logo.src} alt={logo.alt} width={logo.width} height={logo.height} />
+          {carouselCopies.map((copyIndex) => (
+            <div
+              aria-hidden={copyIndex > 0}
+              className="brand-track-set"
+              data-carousel-set={copyIndex === 0 ? "true" : undefined}
+              key={`brand-set-${copyIndex}`}
+            >
+              {partnerLogos.map((logo, logoIndex) => (
+                <div className="brand-card" key={`${copyIndex}-${logo.alt}-${logoIndex}`}>
+                  <Image
+                    src={logo.src}
+                    alt={copyIndex === 0 ? logo.alt : ""}
+                    width={logo.width}
+                    height={logo.height}
+                  />
+                </div>
+              ))}
             </div>
           ))}
         </div>
