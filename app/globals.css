@@ -60,14 +60,21 @@ main {
   margin: 24px auto 0;
 }
 
+main > .page-frame:first-child {
+  padding-top: 80px;
+}
+
 .page-frame--content {
   margin-top: 24px;
 }
 
 .site-header {
-  position: relative;
-  z-index: 10;
+  position: fixed;
+  top: 24px;
+  left: 50%;
+  z-index: 50;
   display: grid;
+  width: var(--container);
   grid-template-columns: 1fr auto 1fr;
   align-items: center;
   height: 80px;
@@ -75,6 +82,7 @@ main {
   background: var(--white);
   border-radius: 24px;
   overflow: visible;
+  transform: translateX(-50%);
 }
 
 .logo-link {
@@ -1707,11 +1715,16 @@ main {
     margin-top: 12px;
   }
 
+  main > .page-frame:first-child {
+    padding-top: 64px;
+  }
+
   .page-frame--content {
     margin-top: 16px;
   }
 
   .site-header {
+    top: 12px;
     display: grid;
     grid-template-columns: 40px 1fr 88px;
     height: 64px;
