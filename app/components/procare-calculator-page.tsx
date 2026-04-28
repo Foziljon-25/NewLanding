@@ -10,7 +10,8 @@ import {
   Header as SharedHeader,
   MaskIcon,
   RequestDialogPortal,
-  type RequestDialogContent
+  type RequestDialogContent,
+  type RequestDialogInitialDevice
 } from "./procare-layout-sections";
 import { useProcarePreferences, type LanguageCode, type ThemeMode } from "./use-procare-preferences";
 import {
@@ -1212,6 +1213,7 @@ function ReportContent({
   content,
   selectedProblemItems,
   total,
+  onRequestOpen,
   showPromo = false
 }: {
   language: LanguageCode;
@@ -1219,6 +1221,7 @@ function ReportContent({
   content: CalculatorContent;
   selectedProblemItems: ServiceProblem[];
   total: number;
+  onRequestOpen: () => void;
   showPromo?: boolean;
 }) {
   const selectedCount = selectedProblemItems.length;
@@ -1280,9 +1283,9 @@ function ReportContent({
         </div>
       </div>
       {showPromo ? <ReportPromoCode content={content} /> : null}
-      <Link className="calc-report-cta" href="/#contact">
+      <button className="calc-report-cta" type="button" onClick={onRequestOpen}>
         {content.report.cta}
-      </Link>
+      </button>
       <p className="calc-report-fine">{content.report.finePrint}</p>
     </div>
   );
@@ -1390,6 +1393,7 @@ export default function ProcareCalculatorPage({ variant = "default" }: ProcareCa
   const [selectedProblems, setSelectedProblems] = useState<string[]>([]);
   const [isMobileReportOpen, setMobileReportOpen] = useState(false);
   const [isRequestDialogOpen, setRequestDialogOpen] = useState(false);
+  const [requestDialogInitialDevice, setRequestDialogInitialDevice] = useState<RequestDialogInitialDevice | null>(null);
   const [isUsingMockData, setUsingMockData] = useState(false);
   const [reloadToken, setReloadToken] = useState(0);
   const content = calculatorCopy[language];
@@ -1402,6 +1406,22 @@ export default function ProcareCalculatorPage({ variant = "default" }: ProcareCa
       : "";
   const selectedProblemItems = problemOptions.filter((problem) => selectedProblems.includes(problem.id));
   const total = selectedProblemItems.reduce((sum, problem) => sum + problem.price, 0);
+  const selectedRequestDevice = useMemo<RequestDialogInitialDevice | null>(
+    () =>
+      selectedCategory
+        ? {
+            id: selectedCategory.id,
+            title: {
+              uz: getLocalizedName(selectedCategory, "uz"),
+              ru: getLocalizedName(selectedCategory, "ru"),
+              en: getLocalizedName(selectedCategory, "en")
+            },
+            source: isUsingMockData ? "fallback" : "api",
+            osTypeId: activeDevice
+          }
+        : null,
+    [activeDevice, isUsingMockData, selectedCategory]
+  );
 
   const activateMockCalculatorData = useCallback(() => {
     const nextOsTypes = getMockCalculatorOsTypes();
@@ -1589,7 +1609,23 @@ export default function ProcareCalculatorPage({ variant = "default" }: ProcareCa
 
   const handleDeviceSelect = (id: string) => {
     setActiveDevice(id);
-    setDropdownOpen(true);
+    setDropdownOpen(false);
+  };
+
+  const openBlankRequestDialog = () => {
+    setRequestDialogInitialDevice(null);
+    setRequestDialogOpen(true);
+  };
+
+  const openCalculatorRequestDialog = () => {
+    setRequestDialogInitialDevice(selectedRequestDevice);
+    setMobileReportOpen(false);
+    setRequestDialogOpen(true);
+  };
+
+  const closeRequestDialog = () => {
+    setRequestDialogOpen(false);
+    setRequestDialogInitialDevice(null);
   };
 
   const handleCategorySearchChange = useCallback((searchQuery: string) => {
@@ -1635,7 +1671,7 @@ export default function ProcareCalculatorPage({ variant = "default" }: ProcareCa
         content={content}
         onThemeToggle={toggleTheme}
         onLanguageChange={setLanguage}
-        onRequestOpen={() => setRequestDialogOpen(true)}
+        onRequestOpen={openBlankRequestDialog}
       />
       <main className="calc-page" data-language={language} data-theme={theme}>
         <div className="calc-shell">
@@ -1689,6 +1725,7 @@ export default function ProcareCalculatorPage({ variant = "default" }: ProcareCa
                   content={content}
                   selectedProblemItems={selectedProblemItems}
                   total={total}
+                  onRequestOpen={openCalculatorRequestDialog}
                 />
               </aside>
               <PromoCodeCard content={content} />
@@ -1742,6 +1779,7 @@ export default function ProcareCalculatorPage({ variant = "default" }: ProcareCa
               content={content}
               selectedProblemItems={selectedProblemItems}
               total={total}
+              onRequestOpen={openCalculatorRequestDialog}
               showPromo
             />
           </aside>
@@ -1751,9 +1789,10 @@ export default function ProcareCalculatorPage({ variant = "default" }: ProcareCa
       {isRequestDialogOpen ? (
         <RequestDialogPortal
           content={content.requestDialog}
+          initialDevice={requestDialogInitialDevice}
           language={language}
           titleId="calculator-request-dialog-title"
-          onClose={() => setRequestDialogOpen(false)}
+          onClose={closeRequestDialog}
         />
       ) : null}
     </>

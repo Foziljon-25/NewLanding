@@ -562,6 +562,18 @@ main > .page-frame:first-child {
   border-color: rgba(0, 191, 255, 0.34);
 }
 
+.request-field.is-invalid,
+.request-device-tree-trigger.is-invalid {
+  border-color: #ef4444;
+  background: rgba(239, 68, 68, 0.06);
+}
+
+.request-field.is-invalid:focus-within,
+.request-device-tree-trigger.is-invalid:focus-visible {
+  border-color: #ef4444;
+  box-shadow: 0 0 0 4px rgba(239, 68, 68, 0.1);
+}
+
 .request-field input,
 .request-field select,
 .request-field textarea {
@@ -697,6 +709,13 @@ main > .page-frame:first-child {
   border-color: rgba(0, 191, 255, 0.34);
   outline: none;
   box-shadow: 0 0 0 4px rgba(0, 191, 255, 0.08);
+}
+
+.request-device-tree.is-open .request-device-tree-trigger.is-invalid,
+.request-device-tree-trigger.is-invalid,
+.request-device-tree-trigger.is-invalid:focus-visible {
+  border-color: #ef4444;
+  box-shadow: 0 0 0 4px rgba(239, 68, 68, 0.1);
 }
 
 .request-device-tree-trigger span:first-child {
@@ -4341,12 +4360,16 @@ main > .page-frame:first-child {
 
 .calc-report-cta {
   display: flex;
+  width: 100%;
   height: 44px;
   align-items: center;
   justify-content: center;
+  border: 0;
   border-radius: 15px;
   background: var(--blue);
   color: var(--white);
+  cursor: pointer;
+  font: inherit;
   font-size: 14px;
   line-height: 18px;
   transition: transform 180ms ease;

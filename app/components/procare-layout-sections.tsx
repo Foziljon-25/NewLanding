@@ -124,6 +124,13 @@ type RequestDeviceTreeNode = {
   osTypeId?: string;
 };
 
+export type RequestDialogInitialDevice = {
+  id: string;
+  title: Record<LanguageCode, string>;
+  source: "api" | "fallback";
+  osTypeId?: string;
+};
+
 function normalizeUzPhoneDigits(value: string) {
   const digits = value.replace(/\D/g, "");
   const withoutCountryCode = digits.startsWith("998") ? digits.slice(3) : digits;
@@ -213,6 +220,14 @@ function mapRequestOptionToDeviceTreeNode(option: RequestPhoneCategoryOption, os
     kind: "category",
     hasChildren: false,
     osTypeId
+  };
+}
+
+function mapInitialDeviceToTreeNode(device: RequestDialogInitialDevice): RequestDeviceTreeNode {
+  return {
+    ...device,
+    kind: "category",
+    hasChildren: false
   };
 }
 
@@ -553,6 +568,7 @@ function LanguageDialogPortal({
 function RequestDeviceTreeSelect({
   activePath,
   childrenByNodeKey,
+  hasError,
   isOpen,
   label,
   language,
@@ -569,6 +585,7 @@ function RequestDeviceTreeSelect({
 }: {
   activePath: RequestDeviceTreeNode[];
   childrenByNodeKey: Record<string, RequestDeviceTreeNode[]>;
+  hasError: boolean;
   isOpen: boolean;
   label: string;
   language: LanguageCode;
@@ -598,7 +615,13 @@ function RequestDeviceTreeSelect({
     <div className={`request-device-tree ${isOpen ? "is-open" : ""}`} ref={treeRef}>
       <button
         aria-expanded={isOpen}
-        className={`request-device-tree-trigger ${selectedNode ? "has-value" : ""}`}
+        className={[
+          "request-device-tree-trigger",
+          selectedNode ? "has-value" : "",
+          hasError ? "is-invalid" : ""
+        ]
+          .filter(Boolean)
+          .join(" ")}
         type="button"
         onClick={() => onOpenChange(!isOpen)}
       >
@@ -682,11 +705,13 @@ function RequestDeviceTreeSelect({
 
 export function RequestDialogPortal({
   content,
+  initialDevice,
   language,
   titleId,
   onClose
 }: {
   content: RequestDialogContent;
+  initialDevice?: RequestDialogInitialDevice | null;
   language: LanguageCode;
   titleId: string;
   onClose: () => void;
@@ -694,9 +719,12 @@ export function RequestDialogPortal({
   const [isMounted, setMounted] = useState(false);
   const [name, setName] = useState("");
   const [phoneDigits, setPhoneDigits] = useState("");
-  const [selectedDeviceNode, setSelectedDeviceNode] = useState<RequestDeviceTreeNode | null>(null);
+  const [selectedDeviceNode, setSelectedDeviceNode] = useState<RequestDeviceTreeNode | null>(() =>
+    initialDevice ? mapInitialDeviceToTreeNode(initialDevice) : null
+  );
   const [otherDeviceType, setOtherDeviceType] = useState("");
   const [message, setMessage] = useState("");
+  const [hasSubmitted, setSubmitted] = useState(false);
   const [status, setStatus] = useState<"idle" | "submitting" | "success" | "error">("idle");
   const [statusMessage, setStatusMessage] = useState("");
   const [deviceTreeRoots, setDeviceTreeRoots] = useState<RequestDeviceTreeNode[]>([]);
@@ -711,6 +739,10 @@ export function RequestDialogPortal({
   const fallbackPhoneCategoryOptions = useMemo(() => getFallbackPhoneCategoryOptions(content.deviceTypes), [content.deviceTypes]);
   const isOtherDeviceType = selectedDeviceNode?.kind === "other";
   const selectedDeviceLabel = selectedDeviceNode ? getOptionLabel(selectedDeviceNode, language) : "";
+  const hasNameError = hasSubmitted && !name.trim();
+  const hasPhoneError = hasSubmitted && phoneDigits.length !== 9;
+  const hasDeviceError = hasSubmitted && !selectedDeviceNode;
+  const hasOtherDeviceError = hasSubmitted && isOtherDeviceType && !otherDeviceType.trim();
 
   useEffect(() => {
     setMounted(true);
@@ -844,6 +876,7 @@ export function RequestDialogPortal({
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
+    setSubmitted(true);
 
     if (!name.trim() || !phoneDigits.trim() || !selectedDeviceNode || (isOtherDeviceType && !otherDeviceType.trim())) {
       setStatus("error");
@@ -885,6 +918,7 @@ export function RequestDialogPortal({
       setSelectedDeviceNode(null);
       setOtherDeviceType("");
       setMessage("");
+      setSubmitted(false);
       setStatus("success");
       setStatusMessage(content.success);
     } catch (error) {
@@ -948,7 +982,7 @@ export function RequestDialogPortal({
         <button className="request-dialog-close" type="button" aria-label={content.closeAria} onClick={onClose} />
 
         <div className="request-fields">
-          <label className="request-field">
+          <label className={`request-field ${hasNameError ? "is-invalid" : ""}`}>
             <span className="sr-only">{content.namePlaceholder}</span>
             <input
               autoComplete="name"
@@ -960,7 +994,7 @@ export function RequestDialogPortal({
             />
           </label>
 
-          <label className="request-field request-field--phone" data-node-id="3149:43825">
+          <label className={`request-field request-field--phone ${hasPhoneError ? "is-invalid" : ""}`} data-node-id="3149:43825">
             <span className="sr-only">{content.phonePlaceholder}</span>
             <Image className="request-phone-icon" src={asset("request-phone-calling.svg")} alt="" width={24} height={24} />
             <span className="request-phone-prefix" aria-hidden="true">
@@ -980,6 +1014,7 @@ export function RequestDialogPortal({
           <RequestDeviceTreeSelect
             activePath={deviceTreeActivePath}
             childrenByNodeKey={deviceTreeChildren}
+            hasError={hasDeviceError}
             isOpen={isDeviceTreeOpen}
             label={isDeviceTreeLoading ? (language === "ru" ? "Загрузка..." : language === "en" ? "Loading..." : "Yuklanmoqda...") : selectedDeviceLabel}
             language={language}
@@ -996,7 +1031,7 @@ export function RequestDialogPortal({
           />
 
           {isOtherDeviceType ? (
-            <label className="request-field request-field--other-device">
+            <label className={`request-field request-field--other-device ${hasOtherDeviceError ? "is-invalid" : ""}`}>
               <span className="sr-only">{content.otherDevicePlaceholder}</span>
               <div className="request-other-device-chip">
                 <span>{otherDeviceTypeLabel}</span>
