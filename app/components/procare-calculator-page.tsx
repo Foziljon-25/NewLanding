@@ -2,13 +2,15 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   AppDownload as SharedAppDownload,
   Faq as SharedFaq,
   Footer as SharedFooter,
   Header as SharedHeader,
-  MaskIcon
+  MaskIcon,
+  RequestDialogPortal,
+  type RequestDialogContent
 } from "./procare-layout-sections";
 import { useProcarePreferences, type LanguageCode, type ThemeMode } from "./use-procare-preferences";
 import {
@@ -20,6 +22,11 @@ import {
   type CalculatorPhoneCategoryDto,
   type CalculatorProblemCategoryDto
 } from "../lib/calculator-api";
+import {
+  getMockCalculatorOsTypes,
+  getMockCalculatorPhoneCategories,
+  getMockCalculatorProblemCategories
+} from "../lib/calculator-mock-data";
 
 const asset = (name: string) => `/assets/procare/${name}`;
 
@@ -54,6 +61,7 @@ type CalculatorContent = {
     themeDark: string;
   };
   languageDialogTitle: string;
+  requestDialog: RequestDialogContent;
   breadcrumb: {
     home: string;
     current: string;
@@ -117,90 +125,6 @@ type ProcareCalculatorPageProps = {
   variant?: CalculatorVariant;
 };
 
-const devices: Device[] = [
-  {
-    id: "iphone",
-    title: { uz: "iPhone", ru: "iPhone", en: "iPhone" },
-    description: { uz: "Smartfonlar", ru: "Смартфоны", en: "Smartphones" },
-    icon: "phone"
-  },
-  {
-    id: "ipad",
-    title: { uz: "iPad", ru: "iPad", en: "iPad" },
-    description: { uz: "Planshetlar", ru: "Планшеты", en: "Tablets" },
-    icon: "tablet"
-  },
-  {
-    id: "watch",
-    title: { uz: "Apple Watch", ru: "Apple Watch", en: "Apple Watch" },
-    description: { uz: "Soatlar", ru: "Часы", en: "Watches" },
-    icon: "watch"
-  },
-  {
-    id: "macbook",
-    title: { uz: "MacBook", ru: "MacBook", en: "MacBook" },
-    description: { uz: "Noutbuklar", ru: "Ноутбуки", en: "Laptops" },
-    icon: "laptop"
-  },
-  {
-    id: "airpods",
-    title: { uz: "AirPods", ru: "AirPods", en: "AirPods" },
-    description: { uz: "Quloqchinlar", ru: "Наушники", en: "Earbuds" },
-    icon: "earbuds"
-  },
-  {
-    id: "imac",
-    title: { uz: "iMac", ru: "iMac", en: "iMac" },
-    description: { uz: "Kompyuterlar", ru: "Компьютеры", en: "Desktops" },
-    icon: "desktop"
-  }
-];
-
-const models: Record<LanguageCode, string[]> = {
-  uz: ["iPhone 14 Pro", "iPhone 14 Pro Max", "iPhone 15", "iPhone 15 Pro"],
-  ru: ["iPhone 14 Pro", "iPhone 14 Pro Max", "iPhone 15", "iPhone 15 Pro"],
-  en: ["iPhone 14 Pro", "iPhone 14 Pro Max", "iPhone 15", "iPhone 15 Pro"]
-};
-
-const problems: ServiceProblem[] = [
-  {
-    id: "display",
-    title: { uz: "Ekran moduli", ru: "Модуль экрана", en: "Display module" },
-    price: 890000,
-    duration: { uz: "30 minut", ru: "30 минут", en: "30 minutes" }
-  },
-  {
-    id: "face-id",
-    title: { uz: "Face ID diagnostika", ru: "Диагностика Face ID", en: "Face ID diagnostics" },
-    price: 120000,
-    duration: { uz: "20 minut", ru: "20 минут", en: "20 minutes" }
-  },
-  {
-    id: "camera",
-    title: { uz: "Orqa kamera", ru: "Задняя камера", en: "Rear camera" },
-    price: 120000,
-    duration: { uz: "25 minut", ru: "25 минут", en: "25 minutes" }
-  },
-  {
-    id: "battery",
-    title: { uz: "Batareya", ru: "Батарея", en: "Battery" },
-    price: 120000,
-    duration: { uz: "35 minut", ru: "35 минут", en: "35 minutes" }
-  },
-  {
-    id: "speaker",
-    title: { uz: "Dinamik", ru: "Динамик", en: "Speaker" },
-    price: 120000,
-    duration: { uz: "20 minut", ru: "20 минут", en: "20 minutes" }
-  },
-  {
-    id: "back-glass",
-    title: { uz: "Orqa oyna", ru: "Заднее стекло", en: "Back glass" },
-    price: 120000,
-    duration: { uz: "45 minut", ru: "45 минут", en: "45 minutes" }
-  }
-];
-
 const languageOptions: Array<{
   code: LanguageCode;
   shortLabel: string;
@@ -226,6 +150,29 @@ const calculatorCopy: Record<LanguageCode, CalculatorContent> = {
       themeDark: "Dark mode yoqish"
     },
     languageDialogTitle: "Ilova tili",
+    requestDialog: {
+      title: "Ariza qoldirish",
+      namePlaceholder: "Ismingiz",
+      phonePlaceholder: "+998 00 000 00 00",
+      deviceTypePlaceholder: "Telefon turi",
+      otherDevicePlaceholder: "Qurilma turini yozing",
+      messagePlaceholder: "Izoh",
+      deviceTypes: ["iPhone", "iPad", "MacBook", "Apple Watch", "Samsung", "Xiaomi", "Boshqa"],
+      cancel: "Bekor qilish",
+      submit: "Yuborish",
+      submitting: "Yuborilmoqda",
+      successTitle: "Tabriklaymiz!",
+      successMessage: "Ariza qoldirganingiz uchun tashakkur. Tez orada operatorlarimiz siz bilan bog'lanishadi.",
+      successMessageMobile:
+        "Siz muvaffaqiyatli tarzda ariza qoldirdingiz. Tez orada operatorlarimiz siz bilan bog'lanishadi. E'tiboringiz uchun tashakkur!",
+      success: "Arizangiz qabul qilindi. Operator tez orada bog'lanadi.",
+      error: "Arizani yuborib bo'lmadi. Iltimos, keyinroq urinib ko'ring.",
+      requiredError: "Ism, telefon raqam va telefon turini kiriting.",
+      phoneError: "Telefon raqamni +998 00 000 00 00 formatida kiriting.",
+      apiNotConfigured: "Ariza API manzili sozlanmagan.",
+      closeAria: "Modal oynani yopish",
+      clearOtherDeviceAria: "Boshqa qurilma turini olib tashlash"
+    },
     breadcrumb: {
       home: "Asosiy",
       current: "Kalkulyator",
@@ -249,7 +196,7 @@ const calculatorCopy: Record<LanguageCode, CalculatorContent> = {
       retry: "Qayta urinish",
       unavailable: "Ma'lumotlarni yuklab bo'lmadi",
       empty: "Ma'lumot topilmadi",
-      previous: "Oldingi bosqich",
+      previous: "Orqaga",
       chooseCategory: "Qurilma/modelni tanlang",
       osMetaSuffix: "operatsion tizim"
     },
@@ -297,6 +244,28 @@ const calculatorCopy: Record<LanguageCode, CalculatorContent> = {
       themeDark: "Включить темную тему"
     },
     languageDialogTitle: "Язык приложения",
+    requestDialog: {
+      title: "Оставить заявку",
+      namePlaceholder: "Ваше имя",
+      phonePlaceholder: "+998 00 000 00 00",
+      deviceTypePlaceholder: "Тип телефона",
+      otherDevicePlaceholder: "Напишите тип устройства",
+      messagePlaceholder: "Комментарий",
+      deviceTypes: ["iPhone", "iPad", "MacBook", "Apple Watch", "Samsung", "Xiaomi", "Другое"],
+      cancel: "Отменить",
+      submit: "Отправить",
+      submitting: "Отправка",
+      successTitle: "Поздравляем!",
+      successMessage: "Спасибо за вашу заявку. Наши операторы скоро свяжутся с вами.",
+      successMessageMobile: "Вы успешно оставили заявку. Наши операторы скоро свяжутся с вами. Спасибо за внимание!",
+      success: "Заявка принята. Оператор скоро свяжется с вами.",
+      error: "Не удалось отправить заявку. Попробуйте позже.",
+      requiredError: "Укажите имя, номер телефона и тип телефона.",
+      phoneError: "Введите номер телефона в формате +998 00 000 00 00.",
+      apiNotConfigured: "Адрес API для заявок не настроен.",
+      closeAria: "Закрыть модальное окно",
+      clearOtherDeviceAria: "Удалить другой тип устройства"
+    },
     breadcrumb: {
       home: "Главная",
       current: "Калькулятор",
@@ -320,7 +289,7 @@ const calculatorCopy: Record<LanguageCode, CalculatorContent> = {
       retry: "Повторить",
       unavailable: "Не удалось загрузить данные",
       empty: "Данные не найдены",
-      previous: "Предыдущий шаг",
+      previous: "Назад",
       chooseCategory: "Выберите устройство/модель",
       osMetaSuffix: "операционные системы"
     },
@@ -368,6 +337,28 @@ const calculatorCopy: Record<LanguageCode, CalculatorContent> = {
       themeDark: "Switch to dark mode"
     },
     languageDialogTitle: "App language",
+    requestDialog: {
+      title: "Leave a request",
+      namePlaceholder: "Your name",
+      phonePlaceholder: "+998 00 000 00 00",
+      deviceTypePlaceholder: "Phone type",
+      otherDevicePlaceholder: "Describe the device type",
+      messagePlaceholder: "Comment",
+      deviceTypes: ["iPhone", "iPad", "MacBook", "Apple Watch", "Samsung", "Xiaomi", "Other"],
+      cancel: "Cancel",
+      submit: "Send",
+      submitting: "Sending",
+      successTitle: "Congratulations!",
+      successMessage: "Thank you for leaving a request. Our operators will contact you soon.",
+      successMessageMobile: "Your request was submitted successfully. Our operators will contact you soon. Thank you!",
+      success: "Your request has been received. An operator will contact you soon.",
+      error: "Could not send the request. Please try again later.",
+      requiredError: "Enter your name, phone number and phone type.",
+      phoneError: "Enter the phone number in +998 00 000 00 00 format.",
+      apiNotConfigured: "Request API URL is not configured.",
+      closeAria: "Close modal",
+      clearOtherDeviceAria: "Remove other device type"
+    },
     breadcrumb: {
       home: "Home",
       current: "Calculator",
@@ -391,7 +382,7 @@ const calculatorCopy: Record<LanguageCode, CalculatorContent> = {
       retry: "Retry",
       unavailable: "Could not load data",
       empty: "No data found",
-      previous: "Previous step",
+      previous: "Back",
       chooseCategory: "Choose device/model",
       osMetaSuffix: "operating systems"
     },
@@ -776,6 +767,15 @@ function ArrowLeftIcon() {
   return <MaskIcon src={asset("calc-back-icon.svg")} width={20} height={20} color="currentColor" />;
 }
 
+function DropdownBackIcon() {
+  return (
+    <svg viewBox="0 0 20 20" aria-hidden="true">
+      <path d="M12.5 4.5 7 10l5.5 5.5" />
+      <path d="M7.5 10H16" />
+    </svg>
+  );
+}
+
 function ReportMarkIcon() {
   return <MaskIcon src={asset("calc-report-mark.svg")} width={16} height={16} color="currentColor" />;
 }
@@ -1066,9 +1066,30 @@ function ModelSelector({
   onRetry: () => void;
   onToggleOpen: () => void;
 }) {
+  const [searchQuery, setSearchQuery] = useState("");
   const familyLabel = categoryTrail.length
     ? categoryTrail.map((category) => getLocalizedName(category, language)).join(" / ")
     : content.sections.chooseCategory;
+  const visibleCategories = useMemo(() => {
+    const normalizedSearch = searchQuery.trim().toLocaleLowerCase();
+
+    if (!normalizedSearch) {
+      return categories;
+    }
+
+    return categories.filter((category) => getLocalizedName(category, language).toLocaleLowerCase().includes(normalizedSearch));
+  }, [categories, language, searchQuery]);
+
+  useEffect(() => {
+    if (!isOpen) {
+      setSearchQuery("");
+    }
+  }, [isOpen]);
+
+  const handleCategorySelect = (category: CalculatorPhoneCategoryDto) => {
+    setSearchQuery("");
+    onCategorySelect(category);
+  };
 
   return (
     <section className="calc-card calc-card--model">
@@ -1082,13 +1103,19 @@ function ModelSelector({
       </button>
       {isOpen ? (
         <div className="calc-dropdown">
-          <div className="calc-dropdown-search">
+          <label className="calc-dropdown-search">
             <SearchIcon />
-            <span>{content.sections.search}</span>
-          </div>
+            <input
+              aria-label={content.sections.search}
+              placeholder={content.sections.search}
+              type="search"
+              value={searchQuery}
+              onChange={(event) => setSearchQuery(event.target.value)}
+            />
+          </label>
           {categoryTrail.length > 0 ? (
             <button className="calc-dropdown-back" type="button" onClick={onCategoryBack}>
-              <ArrowLeftIcon />
+              <DropdownBackIcon />
               <span>{content.sections.previous}</span>
             </button>
           ) : null}
@@ -1102,13 +1129,13 @@ function ModelSelector({
                 </button>
               </div>
             ) : null}
-            {status === "ready" && categories.length === 0 ? <p className="calc-inline-state">{content.sections.empty}</p> : null}
-            {categories.map((category) => (
+            {status === "ready" && visibleCategories.length === 0 ? <p className="calc-inline-state">{content.sections.empty}</p> : null}
+            {visibleCategories.map((category) => (
               <button
                 className={model === getLocalizedName(category, language) ? "is-active" : ""}
                 key={category.id}
                 type="button"
-                onClick={() => onCategorySelect(category)}
+                onClick={() => handleCategorySelect(category)}
               >
                 {getLocalizedName(category, language)}
               </button>
@@ -1186,13 +1213,15 @@ function ReportContent({
   model,
   content,
   selectedProblemItems,
-  total
+  total,
+  showPromo = false
 }: {
   language: LanguageCode;
   model: string;
   content: CalculatorContent;
   selectedProblemItems: ServiceProblem[];
   total: number;
+  showPromo?: boolean;
 }) {
   const selectedCount = selectedProblemItems.length;
   const itemLabel =
@@ -1252,6 +1281,7 @@ function ReportContent({
           <strong>{formatPrice(total)}</strong>
         </div>
       </div>
+      {showPromo ? <ReportPromoCode content={content} /> : null}
       <Link className="calc-report-cta" href="/#contact">
         {content.report.cta}
       </Link>
@@ -1264,10 +1294,25 @@ function PromoCodeCard({ content }: { content: CalculatorContent }) {
   return (
     <section className="calc-card calc-promo-card">
       <h2>{content.promo.title}</h2>
-      <div>
-        <input aria-label={content.promo.title} placeholder={content.promo.placeholder} />
-        <button type="button">{content.promo.button}</button>
-      </div>
+      <PromoCodeFields content={content} />
+    </section>
+  );
+}
+
+function PromoCodeFields({ content }: { content: CalculatorContent }) {
+  return (
+    <div className="calc-promo-fields">
+      <input aria-label={content.promo.title} placeholder={content.promo.placeholder} />
+      <button type="button">{content.promo.button}</button>
+    </div>
+  );
+}
+
+function ReportPromoCode({ content }: { content: CalculatorContent }) {
+  return (
+    <section className="calc-report-card calc-report-promo">
+      <h3>{content.promo.title}</h3>
+      <PromoCodeFields content={content} />
     </section>
   );
 }
@@ -1344,6 +1389,8 @@ export default function ProcareCalculatorPage({ variant = "default" }: ProcareCa
   const [problemError, setProblemError] = useState<string | null>(null);
   const [selectedProblems, setSelectedProblems] = useState<string[]>([]);
   const [isMobileReportOpen, setMobileReportOpen] = useState(false);
+  const [isRequestDialogOpen, setRequestDialogOpen] = useState(false);
+  const [isUsingMockData, setUsingMockData] = useState(false);
   const [reloadToken, setReloadToken] = useState(0);
   const content = calculatorCopy[language];
   const faqContent = calculatorFaqCopy[language];
@@ -1356,12 +1403,21 @@ export default function ProcareCalculatorPage({ variant = "default" }: ProcareCa
   const selectedProblemItems = problemOptions.filter((problem) => selectedProblems.includes(problem.id));
   const total = selectedProblemItems.reduce((sum, problem) => sum + problem.price, 0);
 
+  const activateMockCalculatorData = useCallback(() => {
+    const nextOsTypes = getMockCalculatorOsTypes();
+
+    setUsingMockData(true);
+    setOsTypes(nextOsTypes);
+    setActiveDevice(nextOsTypes[0]?.id ?? "");
+    setOsState("ready");
+    setOsError(null);
+    setCategoryError(null);
+    setProblemError(null);
+  }, []);
+
   useEffect(() => {
     if (!isCalculatorApiConfigured) {
-      setOsTypes([]);
-      setActiveDevice("");
-      setOsState("error");
-      setOsError("NEXT_PUBLIC_CALCULATOR_API_BASE_URL qiymati sozlanmagan.");
+      activateMockCalculatorData();
       return;
     }
 
@@ -1370,6 +1426,7 @@ export default function ProcareCalculatorPage({ variant = "default" }: ProcareCa
     async function loadOsTypes() {
       setOsState("loading");
       setOsError(null);
+      setUsingMockData(false);
 
       try {
         const nextOsTypes = await getCalculatorOsTypes(controller.signal);
@@ -1382,17 +1439,14 @@ export default function ProcareCalculatorPage({ variant = "default" }: ProcareCa
           return;
         }
 
-        setOsTypes([]);
-        setActiveDevice("");
-        setOsState("error");
-        setOsError(error instanceof Error ? error.message : content.sections.unavailable);
+        activateMockCalculatorData();
       }
     }
 
     loadOsTypes();
 
     return () => controller.abort();
-  }, [content.sections.unavailable, reloadToken]);
+  }, [activateMockCalculatorData, reloadToken]);
 
   useEffect(() => {
     setCategoryTrail([]);
@@ -1411,6 +1465,15 @@ export default function ProcareCalculatorPage({ variant = "default" }: ProcareCa
     const controller = new AbortController();
     const parentCategory = categoryTrail[categoryTrail.length - 1];
 
+    if (isUsingMockData) {
+      const nextCategories = getMockCalculatorPhoneCategories(activeDevice, parentCategory?.id);
+
+      setCategoryOptions(nextCategories);
+      setCategoryState("ready");
+      setCategoryError(null);
+      return;
+    }
+
     async function loadCategories() {
       setCategoryState("loading");
       setCategoryError(null);
@@ -1425,16 +1488,14 @@ export default function ProcareCalculatorPage({ variant = "default" }: ProcareCa
           return;
         }
 
-        setCategoryOptions([]);
-        setCategoryState("error");
-        setCategoryError(error instanceof Error ? error.message : content.sections.unavailable);
+        activateMockCalculatorData();
       }
     }
 
     loadCategories();
 
     return () => controller.abort();
-  }, [activeDevice, categoryTrail, content.sections.unavailable, osState, reloadToken]);
+  }, [activateMockCalculatorData, activeDevice, categoryTrail, content.sections.unavailable, isUsingMockData, osState, reloadToken]);
 
   useEffect(() => {
     if (!selectedCategory?.has_problems) {
@@ -1446,6 +1507,16 @@ export default function ProcareCalculatorPage({ variant = "default" }: ProcareCa
 
     const controller = new AbortController();
     const category = selectedCategory;
+
+    if (isUsingMockData) {
+      const nextProblems = getMockCalculatorProblemCategories(category.id).map(mapProblemToService);
+
+      setProblemOptions(nextProblems);
+      setSelectedProblems(nextProblems[0] ? [nextProblems[0].id] : []);
+      setProblemState("ready");
+      setProblemError(null);
+      return;
+    }
 
     async function loadProblems() {
       setProblemState("loading");
@@ -1462,17 +1533,14 @@ export default function ProcareCalculatorPage({ variant = "default" }: ProcareCa
           return;
         }
 
-        setProblemOptions([]);
-        setSelectedProblems([]);
-        setProblemState("error");
-        setProblemError(error instanceof Error ? error.message : content.sections.unavailable);
+        activateMockCalculatorData();
       }
     }
 
     loadProblems();
 
     return () => controller.abort();
-  }, [content.sections.unavailable, reloadToken, selectedCategory]);
+  }, [activateMockCalculatorData, content.sections.unavailable, isUsingMockData, reloadToken, selectedCategory]);
 
   useEffect(() => {
     if (!isMobileReportOpen) {
@@ -1539,6 +1607,7 @@ export default function ProcareCalculatorPage({ variant = "default" }: ProcareCa
         content={content}
         onThemeToggle={toggleTheme}
         onLanguageChange={setLanguage}
+        onRequestOpen={() => setRequestDialogOpen(true)}
       />
       <main className="calc-page" data-language={language} data-theme={theme}>
         <div className="calc-shell">
@@ -1643,9 +1712,18 @@ export default function ProcareCalculatorPage({ variant = "default" }: ProcareCa
               content={content}
               selectedProblemItems={selectedProblemItems}
               total={total}
+              showPromo
             />
           </aside>
         </div>
+      ) : null}
+
+      {isRequestDialogOpen ? (
+        <RequestDialogPortal
+          content={content.requestDialog}
+          titleId="calculator-request-dialog-title"
+          onClose={() => setRequestDialogOpen(false)}
+        />
       ) : null}
     </>
   );
