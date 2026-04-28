@@ -88,10 +88,10 @@ export type RequestDialogContent = {
 };
 
 const footerSocialLinks = [
-  { label: "Telegram", icon: asset("footer-telegram.svg"), width: 18, height: 18, defaultColor: "#ffffff" },
-  { label: "Instagram", icon: asset("footer-instagram.svg"), width: 20, height: 20, defaultColor: "#ffffff" },
-  { label: "YouTube", icon: asset("footer-youtube.svg"), width: 20, height: 15, defaultColor: "#ffffff" },
-  { label: "Facebook", icon: asset("footer-facebook.svg"), width: 11, height: 20, defaultColor: "#ffffff" }
+  { label: "Telegram", href: "https://t.me/proboxuzbot", icon: asset("footer-telegram.svg"), width: 18, height: 18, defaultColor: "#ffffff" },
+  { label: "Instagram", href: "https://www.instagram.com/proboxuz", icon: asset("footer-instagram.svg"), width: 20, height: 20, defaultColor: "#ffffff" },
+  { label: "YouTube", href: "https://www.youtube.com/@Proboxuz", icon: asset("footer-youtube.svg"), width: 20, height: 15, defaultColor: "#ffffff" },
+  { label: "Facebook", href: "https://www.facebook.com/probox.apple.uz", icon: asset("footer-facebook.svg"), width: 11, height: 20, defaultColor: "#ffffff" }
 ] as const;
 
 const languageOptions: Array<{
@@ -626,7 +626,7 @@ function RequestDeviceTreeSelect({
         onClick={() => onOpenChange(!isOpen)}
       >
         <span>{label || placeholder}</span>
-        <span className="request-device-tree-trigger-icon" aria-hidden="true" />
+        <MaskIcon className="request-device-tree-trigger-icon" src={asset("alt-arrow-down.svg")} width={24} height={24} color="var(--blue)" />
       </button>
 
       {isOpen ? (
@@ -996,7 +996,7 @@ export function RequestDialogPortal({
 
           <label className={`request-field request-field--phone ${hasPhoneError ? "is-invalid" : ""}`} data-node-id="3149:43825">
             <span className="sr-only">{content.phonePlaceholder}</span>
-            <Image className="request-phone-icon" src={asset("request-phone-calling.svg")} alt="" width={24} height={24} />
+            <MaskIcon className="request-phone-icon" src={asset("phone-calling.svg")} width={24} height={24} color="var(--blue)" />
             <span className="request-phone-prefix" aria-hidden="true">
               +998
             </span>
@@ -1326,8 +1326,7 @@ export function Footer({ content }: { content: FooterContent }) {
         <div className="footer-contacts">
           <a href="tel:+998781134774">
             <span className="footer-contact-icon footer-phone-icon">
-              <MaskIcon className="footer-phone-main" src={asset("footer-phone-1.svg")} width={19} height={19} color="var(--blue)" />
-              <MaskIcon className="footer-phone-accent" src={asset("footer-phone-2.svg")} width={8} height={8} color="var(--blue)" />
+              <MaskIcon className="footer-contact-symbol" src={asset("phone-calling.svg")} width={24} height={24} color="var(--blue)" />
             </span>
             <span>+998 78 113 47 74</span>
           </a>
@@ -1346,7 +1345,7 @@ export function Footer({ content }: { content: FooterContent }) {
         </div>
         <div className="social-links" aria-label={content.footer.socialsAria}>
           {footerSocialLinks.map((link) => (
-            <a href="#" aria-label={link.label} key={link.label}>
+            <a href={link.href} aria-label={link.label} key={link.label} target="_blank" rel="noreferrer">
               <MaskIcon className="social-icon" src={link.icon} width={link.width} height={link.height} color={link.defaultColor} />
             </a>
           ))}

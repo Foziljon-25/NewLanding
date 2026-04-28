@@ -137,6 +137,13 @@ const languageOptions: Array<{
   { code: "en", shortLabel: "Eng", labels: { uz: "Inglizcha", ru: "Английский", en: "English" }, flagSrc: asset("language-flag-en.svg") }
 ];
 
+const calculatorFooterSocialLinks = [
+  { label: "Telegram", href: "https://t.me/proboxuzbot", icon: "footer-telegram.svg" },
+  { label: "Instagram", href: "https://www.instagram.com/proboxuz", icon: "footer-instagram.svg" },
+  { label: "YouTube", href: "https://www.youtube.com/@Proboxuz", icon: "footer-youtube.svg" },
+  { label: "Facebook", href: "https://www.facebook.com/probox.apple.uz", icon: "footer-facebook.svg" }
+] as const;
+
 const calculatorCopy: Record<LanguageCode, CalculatorContent> = {
   uz: {
     header: {
@@ -1354,9 +1361,9 @@ function CalculatorFooter({ content }: { content: CalculatorContent }) {
           <span>{content.footer.address}</span>
         </div>
         <div className="calc-footer-socials">
-          {["footer-telegram.svg", "footer-instagram.svg", "footer-youtube.svg", "footer-facebook.svg"].map((icon) => (
-            <a href="#" key={icon} aria-label={icon.replace("footer-", "").replace(".svg", "")}>
-              <Image src={asset(icon)} alt="" width={20} height={20} />
+          {calculatorFooterSocialLinks.map((link) => (
+            <a href={link.href} key={link.label} aria-label={link.label} target="_blank" rel="noreferrer">
+              <Image src={asset(link.icon)} alt="" width={20} height={20} />
             </a>
           ))}
         </div>

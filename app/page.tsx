@@ -60,6 +60,7 @@ type FaqItem = {
 
 type FooterSocialLink = {
   label: string;
+  href: string;
   icon: string;
   width: number;
   height: number;
@@ -365,10 +366,10 @@ const faqItems: FaqItem[] = [
 ];
 
 const footerSocialLinks: FooterSocialLink[] = [
-  { label: "Telegram", icon: asset("footer-telegram.svg"), width: 18, height: 18, defaultColor: "#ffffff" },
-  { label: "Instagram", icon: asset("footer-instagram.svg"), width: 20, height: 20, defaultColor: "#ffffff" },
-  { label: "YouTube", icon: asset("footer-youtube.svg"), width: 20, height: 15, defaultColor: "#ffffff" },
-  { label: "Facebook", icon: asset("footer-facebook.svg"), width: 11, height: 20, defaultColor: "#ffffff" }
+  { label: "Telegram", href: "https://t.me/proboxuzbot", icon: asset("footer-telegram.svg"), width: 18, height: 18, defaultColor: "#ffffff" },
+  { label: "Instagram", href: "https://www.instagram.com/proboxuz", icon: asset("footer-instagram.svg"), width: 20, height: 20, defaultColor: "#ffffff" },
+  { label: "YouTube", href: "https://www.youtube.com/@Proboxuz", icon: asset("footer-youtube.svg"), width: 20, height: 15, defaultColor: "#ffffff" },
+  { label: "Facebook", href: "https://www.facebook.com/probox.apple.uz", icon: asset("footer-facebook.svg"), width: 11, height: 20, defaultColor: "#ffffff" }
 ];
 
 const languageOptions: Array<{
@@ -1853,8 +1854,7 @@ function Footer({ content }: { content: LandingCopy }) {
         <div className="footer-contacts">
           <a href="tel:+998781134774">
             <span className="footer-contact-icon footer-phone-icon">
-              <MaskIcon className="footer-phone-main" src={asset("footer-phone-1.svg")} width={19} height={19} color="var(--blue)" />
-              <MaskIcon className="footer-phone-accent" src={asset("footer-phone-2.svg")} width={8} height={8} color="var(--blue)" />
+              <MaskIcon className="footer-contact-symbol" src={asset("phone-calling.svg")} width={24} height={24} color="var(--blue)" />
             </span>
             <span>+998 78 113 47 74</span>
           </a>
@@ -1873,7 +1873,7 @@ function Footer({ content }: { content: LandingCopy }) {
         </div>
         <div className="social-links" aria-label={content.footer.socialsAria}>
           {footerSocialLinks.map((link) => (
-            <a href="#" aria-label={link.label} key={link.label}>
+            <a href={link.href} aria-label={link.label} key={link.label} target="_blank" rel="noreferrer">
               <MaskIcon
                 className="social-icon"
                 src={link.icon}
