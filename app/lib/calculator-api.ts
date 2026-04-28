@@ -89,10 +89,26 @@ export async function getCalculatorOsTypes(signal?: AbortSignal) {
   return sortBySortField(items).filter((item) => item.is_active ?? true);
 }
 
-export async function getCalculatorPhoneCategories(osTypeId: string, parentId?: string | null, signal?: AbortSignal) {
-  const params = parentId ? `?parent_id=${encodeURIComponent(parentId)}` : "";
+export async function getCalculatorPhoneCategories(
+  osTypeId: string,
+  parentId?: string | null,
+  search?: string,
+  signal?: AbortSignal
+) {
+  const params = new URLSearchParams();
+  const trimmedSearch = search?.trim().slice(0, 100);
+
+  if (parentId) {
+    params.set("parent_id", parentId);
+  }
+
+  if (trimmedSearch) {
+    params.set("search", trimmedSearch);
+  }
+
+  const query = params.size ? `?${params.toString()}` : "";
   const items = await fetchCalculatorJson<CalculatorPhoneCategoryDto[]>(
-    `/phone-categories/${encodeURIComponent(osTypeId)}${params}`,
+    `/phone-categories/${encodeURIComponent(osTypeId)}${query}`,
     signal
   );
 

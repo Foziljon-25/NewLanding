@@ -2,8 +2,16 @@
 
 import Image from "next/image";
 import { createPortal } from "react-dom";
-import { useEffect, useRef, useState, type CSSProperties, type FormEvent, type ReactNode } from "react";
-import { isRequestApiConfigured, submitProcareRequest } from "../lib/request-api";
+import { useEffect, useMemo, useRef, useState, type CSSProperties, type FormEvent, type ReactNode, type RefObject } from "react";
+import {
+  getCalculatorOsTypes,
+  getCalculatorPhoneCategories,
+  isCalculatorApiConfigured,
+  type CalculatorOsTypeDto,
+  type CalculatorPhoneCategoryDto
+} from "../lib/calculator-api";
+import { getMockCalculatorOsTypes, getMockCalculatorPhoneCategories } from "../lib/calculator-mock-data";
+import { isRequestApiConfigured, submitProcareRequest, type ProcareRequestApiError } from "../lib/request-api";
 import type { LanguageCode, ThemeMode } from "./use-procare-preferences";
 
 export const asset = (name: string) => `/assets/procare/${name}`;
@@ -59,6 +67,7 @@ export type RequestDialogContent = {
   title: string;
   namePlaceholder: string;
   phonePlaceholder: string;
+  osTypePlaceholder: string;
   deviceTypePlaceholder: string;
   otherDevicePlaceholder: string;
   messagePlaceholder: string;
@@ -96,6 +105,25 @@ const languageOptions: Array<{
   { code: "en", shortLabel: "Eng", labels: { uz: "Inglizcha", ru: "Английский", en: "English" }, flagSrc: asset("language-flag-en.svg") }
 ];
 
+const OTHER_DEVICE_VALUE = "__other_device__";
+
+type RequestPhoneCategoryOption = {
+  id: string;
+  title: Record<LanguageCode, string>;
+  source: "api" | "fallback";
+};
+
+type RequestOsTypeOption = RequestPhoneCategoryOption;
+
+type RequestDeviceTreeNode = {
+  id: string;
+  title: Record<LanguageCode, string>;
+  kind: "os" | "category" | "other";
+  source: "api" | "fallback";
+  hasChildren: boolean;
+  osTypeId?: string;
+};
+
 function normalizeUzPhoneDigits(value: string) {
   const digits = value.replace(/\D/g, "");
   const withoutCountryCode = digits.startsWith("998") ? digits.slice(3) : digits;
@@ -110,10 +138,241 @@ function formatUzPhoneDigits(value: string) {
   return groups.join(" ");
 }
 
-function formatUzPhoneNumber(value: string) {
-  const formattedDigits = formatUzPhoneDigits(value);
+function buildUzPhoneNumber(value: string) {
+  return `+998${normalizeUzPhoneDigits(value)}`;
+}
 
-  return formattedDigits ? `+998 ${formattedDigits}` : "+998";
+function getLocalizedName(
+  item: Pick<CalculatorPhoneCategoryDto, "name_uz" | "name_ru" | "name_en">,
+  language: LanguageCode
+) {
+  return item[`name_${language}`] || item.name_uz || item.name_ru || item.name_en;
+}
+
+function mapPhoneCategoryToRequestOption(
+  category: Pick<CalculatorPhoneCategoryDto, "id" | "name_uz" | "name_ru" | "name_en">,
+  source: RequestPhoneCategoryOption["source"]
+): RequestPhoneCategoryOption {
+  return {
+    id: category.id,
+    title: {
+      uz: getLocalizedName(category, "uz"),
+      ru: getLocalizedName(category, "ru"),
+      en: getLocalizedName(category, "en")
+    },
+    source
+  };
+}
+
+function mapOsTypeToRequestOption(
+  osType: Pick<CalculatorOsTypeDto, "id" | "name_uz" | "name_ru" | "name_en">,
+  source: RequestOsTypeOption["source"]
+): RequestOsTypeOption {
+  return {
+    id: osType.id,
+    title: {
+      uz: getLocalizedName(osType, "uz"),
+      ru: getLocalizedName(osType, "ru"),
+      en: getLocalizedName(osType, "en")
+    },
+    source
+  };
+}
+
+function mapOsOptionToDeviceTreeNode(option: RequestOsTypeOption): RequestDeviceTreeNode {
+  return {
+    ...option,
+    kind: "os",
+    hasChildren: true,
+    osTypeId: option.id
+  };
+}
+
+function mapPhoneCategoryToDeviceTreeNode(
+  category: CalculatorPhoneCategoryDto,
+  source: RequestPhoneCategoryOption["source"],
+  osTypeId: string
+): RequestDeviceTreeNode {
+  return {
+    id: category.id,
+    title: {
+      uz: getLocalizedName(category, "uz"),
+      ru: getLocalizedName(category, "ru"),
+      en: getLocalizedName(category, "en")
+    },
+    kind: "category",
+    source,
+    hasChildren: category.has_children,
+    osTypeId
+  };
+}
+
+function mapRequestOptionToDeviceTreeNode(option: RequestPhoneCategoryOption, osTypeId?: string): RequestDeviceTreeNode {
+  return {
+    ...option,
+    kind: "category",
+    hasChildren: false,
+    osTypeId
+  };
+}
+
+function getOtherDeviceTreeNode(label: string): RequestDeviceTreeNode | null {
+  return label
+    ? {
+        id: OTHER_DEVICE_VALUE,
+        title: { uz: label, ru: label, en: label },
+        kind: "other",
+        source: "fallback",
+        hasChildren: false
+      }
+    : null;
+}
+
+function getDeviceTreeNodeKey(node: RequestDeviceTreeNode) {
+  return `${node.kind}:${node.osTypeId ?? "root"}:${node.id}`;
+}
+
+function getFallbackPhoneCategoryOptions(deviceTypes: string[]) {
+  return deviceTypes.slice(0, -1).map((deviceType, index) => ({
+    id: `fallback-${index}-${deviceType}`,
+    title: {
+      uz: deviceType,
+      ru: deviceType,
+      en: deviceType
+    },
+    source: "fallback" as const
+  }));
+}
+
+function getFallbackOsTypeOptions() {
+  return getMockCalculatorOsTypes().map((osType) => mapOsTypeToRequestOption(osType, "fallback"));
+}
+
+function getOptionLabel(option: RequestPhoneCategoryOption, language: LanguageCode) {
+  return option.title[language] || option.title.uz || option.title.ru || option.title.en;
+}
+
+function getDefaultOsTypeId(options: RequestOsTypeOption[]) {
+  const iosOption = options.find((option) => {
+    const label = `${option.id} ${option.title.uz} ${option.title.ru} ${option.title.en}`.toLowerCase();
+
+    return /\bios\b/.test(label) || label.includes("iphone");
+  });
+
+  return iosOption?.id ?? options[0]?.id ?? "";
+}
+
+function collectMockPhoneCategoryOptions(osTypeId: string, fallbackPhoneCategoryOptions: RequestPhoneCategoryOption[]) {
+  const options: RequestPhoneCategoryOption[] = [];
+
+  const collectCategories = (osTypeId: string, parentId?: string | null) => {
+    getMockCalculatorPhoneCategories(osTypeId, parentId).forEach((category) => {
+      if (category.has_children) {
+        collectCategories(osTypeId, category.id);
+        return;
+      }
+
+      options.push(mapPhoneCategoryToRequestOption(category, "fallback"));
+    });
+  };
+
+  collectCategories(osTypeId);
+
+  return options.length ? options : fallbackPhoneCategoryOptions;
+}
+
+async function collectApiPhoneCategoryOptions(osTypeId: string, signal: AbortSignal) {
+  const options: RequestPhoneCategoryOption[] = [];
+
+  const collectCategories = async (osTypeId: string, parentId?: string | null) => {
+    const categories = await getCalculatorPhoneCategories(osTypeId, parentId, undefined, signal);
+
+    await Promise.all(
+      categories.map(async (category) => {
+        if (category.has_children) {
+          await collectCategories(osTypeId, category.id);
+          return;
+        }
+
+        options.push(mapPhoneCategoryToRequestOption(category, "api"));
+      })
+    );
+  };
+
+  await collectCategories(osTypeId);
+
+  return options;
+}
+
+async function loadOsTypeOptions(signal: AbortSignal) {
+  if (!isCalculatorApiConfigured) {
+    return getFallbackOsTypeOptions();
+  }
+
+  try {
+    const osTypes = await getCalculatorOsTypes(signal);
+
+    return osTypes.map((osType) => mapOsTypeToRequestOption(osType, "api"));
+  } catch (error) {
+    if (signal.aborted) {
+      throw error;
+    }
+
+    return getFallbackOsTypeOptions();
+  }
+}
+
+function getRequestErrorMessage(error: unknown, fallbackMessage: string) {
+  if (error && typeof error === "object" && "message" in error) {
+    const message = (error as ProcareRequestApiError).message;
+
+    if (typeof message === "string" && message.trim()) {
+      return message;
+    }
+  }
+
+  return fallbackMessage;
+}
+
+async function loadDeviceTreeChildren(
+  node: RequestDeviceTreeNode,
+  fallbackPhoneCategoryOptions: RequestPhoneCategoryOption[],
+  signal: AbortSignal
+) {
+  if (!node.hasChildren || !node.osTypeId) {
+    return [];
+  }
+
+  const osTypeId = node.osTypeId;
+  const parentId = node.kind === "category" ? node.id : null;
+
+  if (!isCalculatorApiConfigured) {
+    const categories = getMockCalculatorPhoneCategories(osTypeId, parentId);
+
+    if (!categories.length && node.kind === "os") {
+      return fallbackPhoneCategoryOptions.map((option) => mapRequestOptionToDeviceTreeNode(option, osTypeId));
+    }
+
+    return categories.map((category) => mapPhoneCategoryToDeviceTreeNode(category, "fallback", osTypeId));
+  }
+
+  try {
+    const categories = await getCalculatorPhoneCategories(osTypeId, parentId, undefined, signal);
+
+    if (!categories.length && node.kind === "os") {
+      return fallbackPhoneCategoryOptions.map((option) => mapRequestOptionToDeviceTreeNode(option, osTypeId));
+    }
+
+    return categories.map((category) => mapPhoneCategoryToDeviceTreeNode(category, "api", osTypeId));
+  } catch (error) {
+    if (signal.aborted) {
+      throw error;
+    }
+
+    return node.kind === "os"
+      ? fallbackPhoneCategoryOptions.map((option) => mapRequestOptionToDeviceTreeNode(option, osTypeId))
+      : [];
+  }
 }
 
 function buildMaskStyle({
@@ -291,28 +550,196 @@ function LanguageDialogPortal({
   );
 }
 
+function RequestDeviceTreeSelect({
+  activePath,
+  childrenByNodeKey,
+  isOpen,
+  label,
+  language,
+  loadingNodeKey,
+  otherNode,
+  placeholder,
+  rootNodes,
+  selectedNode,
+  treeRef,
+  onOpenChange,
+  onBack,
+  onNodeActivate,
+  onNodeSelect
+}: {
+  activePath: RequestDeviceTreeNode[];
+  childrenByNodeKey: Record<string, RequestDeviceTreeNode[]>;
+  isOpen: boolean;
+  label: string;
+  language: LanguageCode;
+  loadingNodeKey: string | null;
+  otherNode: RequestDeviceTreeNode | null;
+  placeholder: string;
+  rootNodes: RequestDeviceTreeNode[];
+  selectedNode: RequestDeviceTreeNode | null;
+  treeRef: RefObject<HTMLDivElement | null>;
+  onOpenChange: (isOpen: boolean) => void;
+  onBack: (depth: number) => void;
+  onNodeActivate: (node: RequestDeviceTreeNode, depth: number) => void;
+  onNodeSelect: (node: RequestDeviceTreeNode, depth: number) => void;
+}) {
+  const columns = rootNodes.length ? [rootNodes] : [[] as RequestDeviceTreeNode[]];
+
+  activePath.forEach((node) => {
+    if (node.hasChildren) {
+      columns.push(childrenByNodeKey[getDeviceTreeNodeKey(node)] ?? []);
+    }
+  });
+
+  const activeDepth = Math.min(activePath.length, columns.length - 1);
+  const stackStyle = { "--tree-depth": activeDepth } as CSSProperties;
+
+  return (
+    <div className={`request-device-tree ${isOpen ? "is-open" : ""}`} ref={treeRef}>
+      <button
+        aria-expanded={isOpen}
+        className={`request-device-tree-trigger ${selectedNode ? "has-value" : ""}`}
+        type="button"
+        onClick={() => onOpenChange(!isOpen)}
+      >
+        <span>{label || placeholder}</span>
+        <span className="request-device-tree-trigger-icon" aria-hidden="true" />
+      </button>
+
+      {isOpen ? (
+        <div className="request-device-tree-popover">
+          <div className="request-device-tree-stack" style={stackStyle}>
+            {columns.map((column, depth) => {
+              const parentNode = activePath[depth - 1];
+              const parentKey = parentNode ? getDeviceTreeNodeKey(parentNode) : null;
+              const isLoading = parentKey ? loadingNodeKey === parentKey : false;
+              const displayedColumn =
+                otherNode && depth > 0 && column.length > 0 && column.every((node) => !node.hasChildren)
+                  ? [...column, otherNode]
+                  : column;
+
+              return (
+                <div className="request-device-tree-panel" key={depth}>
+                  <div className="request-device-tree-layerbar">
+                    {depth > 0 ? (
+                      <button
+                        className="request-device-tree-back"
+                        type="button"
+                        onClick={() => onBack(depth)}
+                      >
+                        <span aria-hidden="true" />
+                        {parentNode ? getOptionLabel(parentNode, language) : placeholder}
+                      </button>
+                    ) : (
+                      <span>{placeholder}</span>
+                    )}
+                  </div>
+
+                  <div className="request-device-tree-list" role="listbox" aria-label={depth === 0 ? placeholder : undefined}>
+                    {isLoading ? <span className="request-device-tree-empty">{language === "ru" ? "Загрузка..." : language === "en" ? "Loading..." : "Yuklanmoqda..."}</span> : null}
+                    {!isLoading && displayedColumn.length === 0 ? (
+                      <span className="request-device-tree-empty">
+                        {language === "ru" ? "Нет вариантов" : language === "en" ? "No options" : "Variantlar yo'q"}
+                      </span>
+                    ) : null}
+                    {displayedColumn.map((node) => {
+                      const nodeKey = getDeviceTreeNodeKey(node);
+                      const isActive = activePath[depth] ? getDeviceTreeNodeKey(activePath[depth]) === nodeKey : false;
+                      const isSelected = selectedNode ? getDeviceTreeNodeKey(selectedNode) === nodeKey : false;
+
+                      return (
+                        <button
+                          aria-selected={isSelected}
+                          className={[
+                            "request-device-tree-node",
+                            isActive ? "is-active" : "",
+                            isSelected ? "is-selected" : "",
+                            node.hasChildren ? "has-children" : ""
+                          ]
+                            .filter(Boolean)
+                            .join(" ")}
+                          key={nodeKey}
+                          role="option"
+                          type="button"
+                          onClick={() => onNodeSelect(node, depth)}
+                          onMouseEnter={() => onNodeActivate(node, depth)}
+                        >
+                          <span>{getOptionLabel(node, language)}</span>
+                          {node.hasChildren ? <span className="request-device-tree-chevron" aria-hidden="true" /> : null}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      ) : null}
+    </div>
+  );
+}
+
 export function RequestDialogPortal({
   content,
+  language,
   titleId,
   onClose
 }: {
   content: RequestDialogContent;
+  language: LanguageCode;
   titleId: string;
   onClose: () => void;
 }) {
   const [isMounted, setMounted] = useState(false);
   const [name, setName] = useState("");
   const [phoneDigits, setPhoneDigits] = useState("");
-  const [deviceType, setDeviceType] = useState("");
+  const [selectedDeviceNode, setSelectedDeviceNode] = useState<RequestDeviceTreeNode | null>(null);
   const [otherDeviceType, setOtherDeviceType] = useState("");
   const [message, setMessage] = useState("");
   const [status, setStatus] = useState<"idle" | "submitting" | "success" | "error">("idle");
   const [statusMessage, setStatusMessage] = useState("");
+  const [deviceTreeRoots, setDeviceTreeRoots] = useState<RequestDeviceTreeNode[]>([]);
+  const [deviceTreeChildren, setDeviceTreeChildren] = useState<Record<string, RequestDeviceTreeNode[]>>({});
+  const [deviceTreeActivePath, setDeviceTreeActivePath] = useState<RequestDeviceTreeNode[]>([]);
+  const [isDeviceTreeOpen, setDeviceTreeOpen] = useState(false);
+  const [isDeviceTreeLoading, setDeviceTreeLoading] = useState(false);
+  const [loadingDeviceTreeNodeKey, setLoadingDeviceTreeNodeKey] = useState<string | null>(null);
+  const deviceTreeRef = useRef<HTMLDivElement>(null);
   const otherDeviceTypeLabel = content.deviceTypes[content.deviceTypes.length - 1] ?? "";
-  const isOtherDeviceType = deviceType === otherDeviceTypeLabel;
+  const otherDeviceNode = useMemo(() => getOtherDeviceTreeNode(otherDeviceTypeLabel), [otherDeviceTypeLabel]);
+  const fallbackPhoneCategoryOptions = useMemo(() => getFallbackPhoneCategoryOptions(content.deviceTypes), [content.deviceTypes]);
+  const isOtherDeviceType = selectedDeviceNode?.kind === "other";
+  const selectedDeviceLabel = selectedDeviceNode ? getOptionLabel(selectedDeviceNode, language) : "";
 
   useEffect(() => {
     setMounted(true);
+  }, []);
+
+  useEffect(() => {
+    const controller = new AbortController();
+
+    async function loadOptions() {
+      setDeviceTreeLoading(true);
+
+      try {
+        const nextOptions = await loadOsTypeOptions(controller.signal);
+        setDeviceTreeRoots(nextOptions.map(mapOsOptionToDeviceTreeNode));
+      } catch {
+        if (!controller.signal.aborted) {
+          const fallbackOptions = getFallbackOsTypeOptions();
+          setDeviceTreeRoots(fallbackOptions.map(mapOsOptionToDeviceTreeNode));
+        }
+      } finally {
+        if (!controller.signal.aborted) {
+          setDeviceTreeLoading(false);
+        }
+      }
+    }
+
+    loadOptions();
+
+    return () => controller.abort();
   }, []);
 
   useEffect(() => {
@@ -344,10 +771,81 @@ export function RequestDialogPortal({
     return () => window.clearTimeout(closeTimer);
   }, [onClose, status]);
 
+  useEffect(() => {
+    if (!isDeviceTreeOpen) {
+      return;
+    }
+
+    const handlePointerDown = (event: PointerEvent) => {
+      if (deviceTreeRef.current && !deviceTreeRef.current.contains(event.target as Node)) {
+        setDeviceTreeOpen(false);
+      }
+    };
+
+    window.addEventListener("pointerdown", handlePointerDown);
+
+    return () => window.removeEventListener("pointerdown", handlePointerDown);
+  }, [isDeviceTreeOpen]);
+
+  const loadChildrenForNode = (node: RequestDeviceTreeNode) => {
+    if (!node.hasChildren) {
+      return;
+    }
+
+    const nodeKey = getDeviceTreeNodeKey(node);
+
+    if (deviceTreeChildren[nodeKey] || loadingDeviceTreeNodeKey === nodeKey) {
+      return;
+    }
+
+    const controller = new AbortController();
+
+    setLoadingDeviceTreeNodeKey(nodeKey);
+    loadDeviceTreeChildren(node, fallbackPhoneCategoryOptions, controller.signal)
+      .then((children) => {
+        if (!controller.signal.aborted) {
+          setDeviceTreeChildren((current) => ({ ...current, [nodeKey]: children }));
+        }
+      })
+      .catch(() => {
+        if (!controller.signal.aborted) {
+          setDeviceTreeChildren((current) => ({ ...current, [nodeKey]: [] }));
+        }
+      })
+      .finally(() => {
+        if (!controller.signal.aborted) {
+          setLoadingDeviceTreeNodeKey((current) => (current === nodeKey ? null : current));
+        }
+      });
+  };
+
+  const handleDeviceNodeActivate = (node: RequestDeviceTreeNode, depth: number) => {
+    const nextPath = [...deviceTreeActivePath.slice(0, depth), node];
+
+    setDeviceTreeActivePath(nextPath);
+    loadChildrenForNode(node);
+  };
+
+  const handleDeviceNodeBack = (depth: number) => {
+    setDeviceTreeActivePath((current) => current.slice(0, Math.max(0, depth - 1)));
+  };
+
+  const handleDeviceNodeSelect = (node: RequestDeviceTreeNode, depth: number) => {
+    handleDeviceNodeActivate(node, depth);
+
+    if (node.hasChildren) {
+      return;
+    }
+
+    setSelectedDeviceNode(node);
+    setOtherDeviceType(node.kind === "other" ? otherDeviceType : "");
+    setDeviceTreeOpen(false);
+  };
+
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
 
-    if (!name.trim() || !phoneDigits.trim() || !deviceType.trim() || (isOtherDeviceType && !otherDeviceType.trim())) {
+    if (!name.trim() || !phoneDigits.trim() || !selectedDeviceNode || (isOtherDeviceType && !otherDeviceType.trim())) {
       setStatus("error");
       setStatusMessage(content.requiredError);
       return;
@@ -365,28 +863,33 @@ export function RequestDialogPortal({
       return;
     }
 
+    const phoneCategory = isOtherDeviceType
+      ? otherDeviceType.trim()
+      : selectedDeviceNode.source === "api"
+        ? selectedDeviceNode.id
+        : getOptionLabel(selectedDeviceNode, language);
+
     setStatus("submitting");
     setStatusMessage("");
 
     try {
       await submitProcareRequest({
-        deviceType: isOtherDeviceType ? `${deviceType.trim()}: ${otherDeviceType.trim()}` : deviceType.trim(),
-        message: message.trim(),
+        description: message.trim(),
         name: name.trim(),
-        phone: formatUzPhoneNumber(phoneDigits),
-        source: "procare_landing"
+        phone_category: phoneCategory,
+        phone_number: buildUzPhoneNumber(phoneDigits)
       });
 
       setName("");
       setPhoneDigits("");
-      setDeviceType("");
+      setSelectedDeviceNode(null);
       setOtherDeviceType("");
       setMessage("");
       setStatus("success");
       setStatusMessage(content.success);
-    } catch {
+    } catch (error) {
       setStatus("error");
-      setStatusMessage(content.error);
+      setStatusMessage(getRequestErrorMessage(error, content.error));
     }
   };
 
@@ -474,6 +977,24 @@ export function RequestDialogPortal({
             />
           </label>
 
+          <RequestDeviceTreeSelect
+            activePath={deviceTreeActivePath}
+            childrenByNodeKey={deviceTreeChildren}
+            isOpen={isDeviceTreeOpen}
+            label={isDeviceTreeLoading ? (language === "ru" ? "Загрузка..." : language === "en" ? "Loading..." : "Yuklanmoqda...") : selectedDeviceLabel}
+            language={language}
+            loadingNodeKey={loadingDeviceTreeNodeKey}
+            otherNode={otherDeviceNode}
+            placeholder={content.deviceTypePlaceholder}
+            rootNodes={deviceTreeRoots}
+            selectedNode={selectedDeviceNode}
+            treeRef={deviceTreeRef}
+            onBack={handleDeviceNodeBack}
+            onNodeActivate={handleDeviceNodeActivate}
+            onNodeSelect={handleDeviceNodeSelect}
+            onOpenChange={setDeviceTreeOpen}
+          />
+
           {isOtherDeviceType ? (
             <label className="request-field request-field--other-device">
               <span className="sr-only">{content.otherDevicePlaceholder}</span>
@@ -483,7 +1004,7 @@ export function RequestDialogPortal({
                   type="button"
                   aria-label={content.clearOtherDeviceAria}
                   onClick={() => {
-                    setDeviceType("");
+                    setSelectedDeviceNode(null);
                     setOtherDeviceType("");
                   }}
                 />
@@ -495,19 +1016,7 @@ export function RequestDialogPortal({
                 onChange={(event) => setOtherDeviceType(event.target.value)}
               />
             </label>
-          ) : (
-            <label className={`request-field request-field--select ${deviceType ? "has-value" : ""}`}>
-              <span className="sr-only">{content.deviceTypePlaceholder}</span>
-              <select name="deviceType" value={deviceType} onChange={(event) => setDeviceType(event.target.value)}>
-                <option value="">{content.deviceTypePlaceholder}</option>
-                {content.deviceTypes.map((type) => (
-                  <option value={type} key={type}>
-                    {type}
-                  </option>
-                ))}
-              </select>
-            </label>
-          )}
+          ) : null}
 
           <label className="request-field request-field--message">
             <span className="sr-only">{content.messagePlaceholder}</span>

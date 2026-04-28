@@ -267,12 +267,28 @@ export function getMockCalculatorOsTypes() {
   return sortBySortField(mockOsTypes).filter((item) => item.is_active ?? true);
 }
 
-export function getMockCalculatorPhoneCategories(osTypeId: string, parentId?: string | null) {
+function categoryMatchesSearch(category: CalculatorPhoneCategoryDto, search?: string) {
+  const normalizedSearch = search?.trim().slice(0, 100).toLocaleLowerCase();
+
+  if (!normalizedSearch) {
+    return true;
+  }
+
+  return [category.name_uz, category.name_ru, category.name_en].some((name) =>
+    name.toLocaleLowerCase().includes(normalizedSearch)
+  );
+}
+
+export function getMockCalculatorPhoneCategories(osTypeId: string, parentId?: string | null, search?: string) {
   return sortBySortField(
     mockPhoneCategories.filter((category) => {
       const normalizedParentId = parentId ?? null;
 
-      return category.phone_os_type_id === osTypeId && (category.parent_id ?? null) === normalizedParentId;
+      return (
+        category.phone_os_type_id === osTypeId &&
+        (category.parent_id ?? null) === normalizedParentId &&
+        categoryMatchesSearch(category, search)
+      );
     })
   );
 }

@@ -154,6 +154,7 @@ const calculatorCopy: Record<LanguageCode, CalculatorContent> = {
       title: "Ariza qoldirish",
       namePlaceholder: "Ismingiz",
       phonePlaceholder: "+998 00 000 00 00",
+      osTypePlaceholder: "Operatsion sistema",
       deviceTypePlaceholder: "Telefon turi",
       otherDevicePlaceholder: "Qurilma turini yozing",
       messagePlaceholder: "Izoh",
@@ -248,6 +249,7 @@ const calculatorCopy: Record<LanguageCode, CalculatorContent> = {
       title: "Оставить заявку",
       namePlaceholder: "Ваше имя",
       phonePlaceholder: "+998 00 000 00 00",
+      osTypePlaceholder: "Операционная система",
       deviceTypePlaceholder: "Тип телефона",
       otherDevicePlaceholder: "Напишите тип устройства",
       messagePlaceholder: "Комментарий",
@@ -341,6 +343,7 @@ const calculatorCopy: Record<LanguageCode, CalculatorContent> = {
       title: "Leave a request",
       namePlaceholder: "Your name",
       phonePlaceholder: "+998 00 000 00 00",
+      osTypePlaceholder: "Operating system",
       deviceTypePlaceholder: "Phone type",
       otherDevicePlaceholder: "Describe the device type",
       messagePlaceholder: "Comment",
@@ -1044,12 +1047,14 @@ function ModelSelector({
   model,
   categories,
   categoryTrail,
+  searchQuery,
   status,
   error,
   isOpen,
   content,
   onCategorySelect,
   onCategoryBack,
+  onSearchChange,
   onRetry,
   onToggleOpen
 }: {
@@ -1057,37 +1062,29 @@ function ModelSelector({
   model: string;
   categories: CalculatorPhoneCategoryDto[];
   categoryTrail: CalculatorPhoneCategoryDto[];
+  searchQuery: string;
   status: LoadState;
   error: string | null;
   isOpen: boolean;
   content: CalculatorContent;
   onCategorySelect: (category: CalculatorPhoneCategoryDto) => void;
   onCategoryBack: () => void;
+  onSearchChange: (searchQuery: string) => void;
   onRetry: () => void;
   onToggleOpen: () => void;
 }) {
-  const [searchQuery, setSearchQuery] = useState("");
   const familyLabel = categoryTrail.length
     ? categoryTrail.map((category) => getLocalizedName(category, language)).join(" / ")
     : content.sections.chooseCategory;
-  const visibleCategories = useMemo(() => {
-    const normalizedSearch = searchQuery.trim().toLocaleLowerCase();
-
-    if (!normalizedSearch) {
-      return categories;
-    }
-
-    return categories.filter((category) => getLocalizedName(category, language).toLocaleLowerCase().includes(normalizedSearch));
-  }, [categories, language, searchQuery]);
 
   useEffect(() => {
     if (!isOpen) {
-      setSearchQuery("");
+      onSearchChange("");
     }
-  }, [isOpen]);
+  }, [isOpen, onSearchChange]);
 
   const handleCategorySelect = (category: CalculatorPhoneCategoryDto) => {
-    setSearchQuery("");
+    onSearchChange("");
     onCategorySelect(category);
   };
 
@@ -1109,8 +1106,9 @@ function ModelSelector({
               aria-label={content.sections.search}
               placeholder={content.sections.search}
               type="search"
+              maxLength={100}
               value={searchQuery}
-              onChange={(event) => setSearchQuery(event.target.value)}
+              onChange={(event) => onSearchChange(event.target.value.slice(0, 100))}
             />
           </label>
           {categoryTrail.length > 0 ? (
@@ -1129,8 +1127,8 @@ function ModelSelector({
                 </button>
               </div>
             ) : null}
-            {status === "ready" && visibleCategories.length === 0 ? <p className="calc-inline-state">{content.sections.empty}</p> : null}
-            {visibleCategories.map((category) => (
+            {status === "ready" && categories.length === 0 ? <p className="calc-inline-state">{content.sections.empty}</p> : null}
+            {categories.map((category) => (
               <button
                 className={model === getLocalizedName(category, language) ? "is-active" : ""}
                 key={category.id}
@@ -1381,6 +1379,8 @@ export default function ProcareCalculatorPage({ variant = "default" }: ProcareCa
   const [activeDevice, setActiveDevice] = useState("");
   const [categoryOptions, setCategoryOptions] = useState<CalculatorPhoneCategoryDto[]>([]);
   const [categoryTrail, setCategoryTrail] = useState<CalculatorPhoneCategoryDto[]>([]);
+  const [categorySearchQuery, setCategorySearchQuery] = useState("");
+  const [debouncedCategorySearchQuery, setDebouncedCategorySearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<CalculatorPhoneCategoryDto | null>(null);
   const [categoryState, setCategoryState] = useState<LoadState>("idle");
   const [categoryError, setCategoryError] = useState<string | null>(null);
@@ -1450,10 +1450,20 @@ export default function ProcareCalculatorPage({ variant = "default" }: ProcareCa
 
   useEffect(() => {
     setCategoryTrail([]);
+    setCategorySearchQuery("");
+    setDebouncedCategorySearchQuery("");
     setSelectedCategory(null);
     setSelectedProblems([]);
     setProblemOptions([]);
   }, [activeDevice]);
+
+  useEffect(() => {
+    const timeoutId = window.setTimeout(() => {
+      setDebouncedCategorySearchQuery(categorySearchQuery.trim().slice(0, 100));
+    }, 250);
+
+    return () => window.clearTimeout(timeoutId);
+  }, [categorySearchQuery]);
 
   useEffect(() => {
     if (!activeDevice || osState !== "ready") {
@@ -1466,7 +1476,7 @@ export default function ProcareCalculatorPage({ variant = "default" }: ProcareCa
     const parentCategory = categoryTrail[categoryTrail.length - 1];
 
     if (isUsingMockData) {
-      const nextCategories = getMockCalculatorPhoneCategories(activeDevice, parentCategory?.id);
+      const nextCategories = getMockCalculatorPhoneCategories(activeDevice, parentCategory?.id, debouncedCategorySearchQuery);
 
       setCategoryOptions(nextCategories);
       setCategoryState("ready");
@@ -1479,7 +1489,12 @@ export default function ProcareCalculatorPage({ variant = "default" }: ProcareCa
       setCategoryError(null);
 
       try {
-        const nextCategories = await getCalculatorPhoneCategories(activeDevice, parentCategory?.id, controller.signal);
+        const nextCategories = await getCalculatorPhoneCategories(
+          activeDevice,
+          parentCategory?.id,
+          debouncedCategorySearchQuery,
+          controller.signal
+        );
 
         setCategoryOptions(nextCategories);
         setCategoryState("ready");
@@ -1495,7 +1510,16 @@ export default function ProcareCalculatorPage({ variant = "default" }: ProcareCa
     loadCategories();
 
     return () => controller.abort();
-  }, [activateMockCalculatorData, activeDevice, categoryTrail, content.sections.unavailable, isUsingMockData, osState, reloadToken]);
+  }, [
+    activateMockCalculatorData,
+    activeDevice,
+    categoryTrail,
+    content.sections.unavailable,
+    debouncedCategorySearchQuery,
+    isUsingMockData,
+    osState,
+    reloadToken
+  ]);
 
   useEffect(() => {
     if (!selectedCategory?.has_problems) {
@@ -1568,6 +1592,10 @@ export default function ProcareCalculatorPage({ variant = "default" }: ProcareCa
     setDropdownOpen(true);
   };
 
+  const handleCategorySearchChange = useCallback((searchQuery: string) => {
+    setCategorySearchQuery(searchQuery.slice(0, 100));
+  }, []);
+
   const handleCategorySelect = (category: CalculatorPhoneCategoryDto) => {
     if (category.has_children) {
       setCategoryTrail((current) => [...current, category]);
@@ -1632,11 +1660,13 @@ export default function ProcareCalculatorPage({ variant = "default" }: ProcareCa
                 model={selectedModel}
                 categories={categoryOptions}
                 categoryTrail={categoryTrail}
+                searchQuery={categorySearchQuery}
                 status={categoryState}
                 error={categoryError}
                 content={content}
                 onCategorySelect={handleCategorySelect}
                 onCategoryBack={handleCategoryBack}
+                onSearchChange={handleCategorySearchChange}
                 onRetry={retryApi}
                 onToggleOpen={() => setDropdownOpen((current) => !current)}
               />
@@ -1721,6 +1751,7 @@ export default function ProcareCalculatorPage({ variant = "default" }: ProcareCa
       {isRequestDialogOpen ? (
         <RequestDialogPortal
           content={content.requestDialog}
+          language={language}
           titleId="calculator-request-dialog-title"
           onClose={() => setRequestDialogOpen(false)}
         />

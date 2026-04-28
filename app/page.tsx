@@ -400,6 +400,7 @@ const copy: Record<LanguageCode, LandingCopy> = {
       title: "Ariza qoldirish",
       namePlaceholder: "Ismingiz",
       phonePlaceholder: "+998 00 000 00 00",
+      osTypePlaceholder: "Operatsion sistema",
       deviceTypePlaceholder: "Telefon turi",
       otherDevicePlaceholder: "Qurilma turini yozing",
       messagePlaceholder: "Izoh",
@@ -506,6 +507,7 @@ const copy: Record<LanguageCode, LandingCopy> = {
       title: "Оставить заявку",
       namePlaceholder: "Ваше имя",
       phonePlaceholder: "+998 00 000 00 00",
+      osTypePlaceholder: "Операционная система",
       deviceTypePlaceholder: "Тип телефона",
       otherDevicePlaceholder: "Напишите тип устройства",
       messagePlaceholder: "Комментарий",
@@ -742,6 +744,7 @@ const copy: Record<LanguageCode, LandingCopy> = {
       title: "Leave a request",
       namePlaceholder: "Your name",
       phonePlaceholder: "+998 00 000 00 00",
+      osTypePlaceholder: "Operating system",
       deviceTypePlaceholder: "Phone type",
       otherDevicePlaceholder: "Describe the device type",
       messagePlaceholder: "Comment",
@@ -1929,6 +1932,7 @@ export default function Home() {
       {isRequestDialogOpen ? (
         <RequestDialogPortal
           content={content.requestDialog}
+          language={language}
           titleId="request-dialog-title"
           onClose={() => setRequestDialogOpen(false)}
         />
