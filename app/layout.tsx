@@ -12,6 +12,9 @@ export const metadata: Metadata = {
   title: "Procare | Professional servis markazi",
   description:
     "Procare servis markazi Apple qurilmalari uchun diagnostika, ta'mirlash, ehtiyot qismlar va kafolatli xizmatlarni taklif qiladi.",
+  icons: {
+    icon: "/favicon.svg"
+  },
   openGraph: {
     title: "Procare | Professional servis markazi",
     description:

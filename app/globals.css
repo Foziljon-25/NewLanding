@@ -4046,6 +4046,9 @@ main > .page-frame:first-child {
   right: 24px;
   left: 24px;
   z-index: 8;
+  display: flex;
+  max-height: min(360px, calc(100dvh - 220px));
+  flex-direction: column;
   overflow: hidden;
   border: 1px solid var(--slate-200);
   border-radius: 8px;
@@ -4128,13 +4131,37 @@ main > .page-frame:first-child {
 
 .calc-dropdown-list {
   display: flex;
+  min-height: 0;
+  flex: 1 1 auto;
   flex-direction: column;
   gap: 4px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
   padding: 4px;
+  scrollbar-color: rgba(100, 116, 139, 0.4) transparent;
+  scrollbar-gutter: stable;
+  scrollbar-width: thin;
+  -webkit-overflow-scrolling: touch;
+}
+
+.calc-dropdown-list::-webkit-scrollbar {
+  width: 8px;
+}
+
+.calc-dropdown-list::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.calc-dropdown-list::-webkit-scrollbar-thumb {
+  border: 2px solid transparent;
+  border-radius: 999px;
+  background: rgba(100, 116, 139, 0.32);
+  background-clip: padding-box;
 }
 
 .calc-dropdown-list button {
   width: 100%;
+  min-height: 30px;
   padding: 6px 8px;
   border-radius: 6px;
   color: var(--slate-800);
@@ -4717,6 +4744,7 @@ main > .page-frame:first-child {
     top: 86px;
     right: 16px;
     left: 16px;
+    max-height: clamp(160px, calc(100dvh - 390px), 264px);
   }
 
   .calc-problem-grid {
