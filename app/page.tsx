@@ -151,10 +151,17 @@ type LandingCopy = {
 };
 
 const partnerLogos: PartnerLogo[] = [
-  { src: asset("brand-xiaomi.png"), alt: "Xiaomi", width: 110, height: 56 },
   { src: asset("brand-apple.png"), alt: "Apple", width: 104, height: 16 },
-  { src: asset("brand-samsung.png"), alt: "Samsung", width: 78, height: 36 },
-  { src: asset("brand-lg.png"), alt: "LG", width: 114, height: 32 }
+  { src: asset("brand-samsung.svg"), alt: "Samsung", width: 128, height: 28 },
+  { src: asset("brand-huawei.svg"), alt: "Huawei", width: 120, height: 30 },
+  { src: asset("brand-xiaomi.svg"), alt: "Xiaomi", width: 110, height: 56 },
+  { src: asset("brand-honor.svg"), alt: "Honor", width: 118, height: 28 },
+  { src: asset("brand-oppo.svg"), alt: "Oppo", width: 114, height: 40 },
+  { src: asset("brand-vivo.svg"), alt: "Vivo", width: 120, height: 26 },
+  { src: asset("brand-infinix.svg"), alt: "Infinix", width: 116, height: 24 },
+  { src: asset("brand-tecno.svg"), alt: "Tecno", width: 80, height: 39 },
+  { src: asset("brand-zte.svg"), alt: "ZTE", width: 126, height: 22 },
+  { src: asset("brand-sony.svg"), alt: "Sony", width: 114, height: 32 }
 ];
 
 const serviceTabs: ServiceTab[] = [
